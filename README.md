@@ -1553,3 +1553,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 Backend dev changelog 
 25th of march 2020 added keys for fb and google and insta
 25th of march 2020 moving to apply grapql to the project.
+27th of march all 3 logins are now working ( using my personal credtials which points to a larger problem in the way alviono has configured the app)
