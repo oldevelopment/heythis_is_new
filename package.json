@@ -41,6 +41,7 @@
     "express-status-monitor": "^1.2.8",
     "fbgraph": "^1.4.4",
     "googleapis": "^47.0.0",
+    "graphiql": "^0.17.5",
     "graphql": "^14.6.0",
     "instagram-node": "^0.5.8",
     "jquery": "^3.4.1",
