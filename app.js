@@ -116,7 +116,10 @@ const schema = new GraphQLSchema({
         type: PersonType,
         args: {
           firstname: { type: GraphQLNonNull(GraphQLString) },
-          lastname: { type: GraphQLNonNull(GraphQLString) }
+          lastname: { type: GraphQLNonNull(GraphQLString) },
+          profile: { type: GraphQLNonNull(GraphQLString) },
+          social: { type: GraphQLNonNull(GraphQLString) }
+
         },
         resolve: (root, args, context, info) => {
           const person = new PersonModel(args);
