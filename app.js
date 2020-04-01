@@ -75,7 +75,9 @@ mongoose.connection.on('error', (err) => {
 // Graphql set up
 const PersonModel = mongoose.model('person', {
   firstname: String,
-  lastname: String
+  lastname: String,
+  profile: String,
+  social: String
 });
 
 const PersonType = new GraphQLObjectType({
@@ -83,7 +85,10 @@ const PersonType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLID },
     firstname: { type: GraphQLString },
-    lastname: { type: GraphQLString }
+    lastname: { type: GraphQLString },
+    profile: { type: GraphQLString },
+    social: { type: GraphQLString }
+
   }
 });
 
