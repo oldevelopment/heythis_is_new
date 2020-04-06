@@ -3,7 +3,9 @@ const bcrypt = require('bcrypt-nodejs');
 
 const userSchema = mongoose.Schema({
   local: {
-    username: { type: String, unique: true, sparse: true, trim: true, lowercase: true },
+    username: {
+      type: String, unique: true, sparse: true, trim: true, lowercase: true
+    },
     password: { type: String },
     created: Date
   },
@@ -31,7 +33,9 @@ const userSchema = mongoose.Schema({
     post: String
   },
   site: {
-    name: { type: String, unique: true, sparse: true, trim: true, lowercase: true }
+    name: {
+      type: String, unique: true, sparse: true, trim: true, lowercase: true
+    }
   },
   google: {
     id: String,
