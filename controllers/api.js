@@ -24,7 +24,7 @@ Quickbooks.setOauthVersion('2.0');
  */
 exports.getApi = (req, res) => {
   res.render('api/index', {
-    title: 'API Examples'
+    title: 'API Examples',
   });
 };
 
@@ -37,22 +37,31 @@ exports.getFoursquare = async (req, res, next) => {
   let trendingVenues;
   let venueDetail;
   let userCheckins;
-  axios.all([
-    axios.get(`https://api.foursquare.com/v2/venues/trending?ll=40.7222756,-74.0022724&limit=50&oauth_token=${token.accessToken}&v=20140806`),
-    axios.get(`https://api.foursquare.com/v2/venues/49da74aef964a5208b5e1fe3?oauth_token=${token.accessToken}&v=20190113`),
-    axios.get(`https://api.foursquare.com/v2/users/self/checkins?oauth_token=${token.accessToken}&v=20190113`)
-  ])
-    .then(axios.spread((trendingVenuesRes, venueDetailRes, userCheckinsRes) => {
-      trendingVenues = trendingVenuesRes.data.response;
-      venueDetail = venueDetailRes.data.response;
-      userCheckins = userCheckinsRes.data.response;
-      res.render('api/foursquare', {
-        title: 'Foursquare API',
-        trendingVenues,
-        venueDetail,
-        userCheckins
-      });
-    }))
+  axios
+    .all([
+      axios.get(
+        `https://api.foursquare.com/v2/venues/trending?ll=40.7222756,-74.0022724&limit=50&oauth_token=${token.accessToken}&v=20140806`,
+      ),
+      axios.get(
+        `https://api.foursquare.com/v2/venues/49da74aef964a5208b5e1fe3?oauth_token=${token.accessToken}&v=20190113`,
+      ),
+      axios.get(
+        `https://api.foursquare.com/v2/users/self/checkins?oauth_token=${token.accessToken}&v=20190113`,
+      ),
+    ])
+    .then(
+      axios.spread((trendingVenuesRes, venueDetailRes, userCheckinsRes) => {
+        trendingVenues = trendingVenuesRes.data.response;
+        venueDetail = venueDetailRes.data.response;
+        userCheckins = userCheckinsRes.data.response;
+        res.render('api/foursquare', {
+          title: 'Foursquare API',
+          trendingVenues,
+          venueDetail,
+          userCheckins,
+        });
+      }),
+    )
     .catch((error) => {
       next(error);
     });
@@ -68,14 +77,16 @@ exports.getTumblr = (req, res, next) => {
     consumer_key: process.env.TUMBLR_KEY,
     consumer_secret: process.env.TUMBLR_SECRET,
     token: token.accessToken,
-    token_secret: token.tokenSecret
+    token_secret: token.tokenSecret,
   });
   client.blogPosts('mmosdotcom.tumblr.com', { type: 'photo' }, (err, data) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     res.render('api/tumblr', {
       title: 'Tumblr API',
       blog: data.blog,
-      photoset: data.posts[0].photos
+      photoset: data.posts[0].photos,
     });
   });
 };
@@ -87,13 +98,18 @@ exports.getTumblr = (req, res, next) => {
 exports.getFacebook = (req, res, next) => {
   const token = req.user.tokens.find((token) => token.kind === 'facebook');
   graph.setAccessToken(token.accessToken);
-  graph.get(`${req.user.facebook}?fields=id,name,email,first_name,last_name,gender,link,locale,timezone`, (err, profile) => {
-    if (err) { return next(err); }
-    res.render('api/facebook', {
-      title: 'Facebook API',
-      profile
-    });
-  });
+  graph.get(
+    `${req.user.facebook}?fields=id,name,email,first_name,last_name,gender,link,locale,timezone`,
+    (err, profile) => {
+      if (err) {
+        return next(err);
+      }
+      res.render('api/facebook', {
+        title: 'Facebook API',
+        profile,
+      });
+    },
+  );
 };
 
 /**
@@ -101,16 +117,19 @@ exports.getFacebook = (req, res, next) => {
  * Web scraping example using Cheerio library.
  */
 exports.getScraping = (req, res, next) => {
-  axios.get('https://news.ycombinator.com/')
+  axios
+    .get('https://news.ycombinator.com/')
     .then((response) => {
       const $ = cheerio.load(response.data);
       const links = [];
-      $('.title a[href^="http"], a[href^="https"]').slice(1).each((index, element) => {
-        links.push($(element));
-      });
+      $('.title a[href^="http"], a[href^="https"]')
+        .slice(1)
+        .each((index, element) => {
+          links.push($(element));
+        });
       res.render('api/scraping', {
         title: 'Web Scraping',
-        links
+        links,
       });
     })
     .catch((error) => next(error));
@@ -126,7 +145,7 @@ exports.getGithub = async (req, res, next) => {
     const { data: repo } = await github.repos.get({ owner: 'sahat', repo: 'hackathon-starter' });
     res.render('api/github', {
       title: 'GitHub API',
-      repo
+      repo,
     });
   } catch (error) {
     next(error);
@@ -136,13 +155,23 @@ exports.getGithub = async (req, res, next) => {
 exports.getQuickbooks = (req, res) => {
   const token = req.user.tokens.find((token) => token.kind === 'quickbooks');
 
-  const qbo = new Quickbooks(process.env.QUICKBOOKS_CLIENT_ID, process.env.QUICKBOOKS_CLIENT_SECRET,
-    token.accessToken, false, req.user.quickbooks, true, false, null, '2.0', token.refreshToken);
+  const qbo = new Quickbooks(
+    process.env.QUICKBOOKS_CLIENT_ID,
+    process.env.QUICKBOOKS_CLIENT_SECRET,
+    token.accessToken,
+    false,
+    req.user.quickbooks,
+    true,
+    false,
+    null,
+    '2.0',
+    token.refreshToken,
+  );
 
   qbo.findCustomers((_, customers) => {
     res.render('api/quickbooks', {
       title: 'Quickbooks API',
-      customers: customers.QueryResponse.Customer
+      customers: customers.QueryResponse.Customer,
     });
   });
 };
@@ -153,17 +182,22 @@ exports.getQuickbooks = (req, res) => {
  */
 exports.getNewYorkTimes = (req, res, next) => {
   const apiKey = process.env.NYT_KEY;
-  axios.get(`http://api.nytimes.com/svc/books/v2/lists?list-name=young-adult&api-key=${apiKey}`)
+  axios
+    .get(`http://api.nytimes.com/svc/books/v2/lists?list-name=young-adult&api-key=${apiKey}`)
     .then((response) => {
       const books = response.data.results;
       res.render('api/nyt', {
         title: 'New York Times API',
-        books
+        books,
       });
     })
     .catch((err) => {
       const message = JSON.stringify(err.response.data.fault);
-      next(new Error(`New York Times API - ${err.response.status} ${err.response.statusText} ${message}`));
+      next(
+        new Error(
+          `New York Times API - ${err.response.status} ${err.response.statusText} ${message}`,
+        ),
+      );
     });
 };
 
@@ -174,7 +208,7 @@ exports.getNewYorkTimes = (req, res, next) => {
 exports.getLastfm = async (req, res, next) => {
   const lastfm = new LastFmNode({
     api_key: process.env.LASTFM_KEY,
-    secret: process.env.LASTFM_SECRET
+    secret: process.env.LASTFM_SECRET,
   });
   const getArtistInfo = () =>
     new Promise((resolve, reject) => {
@@ -182,8 +216,8 @@ exports.getLastfm = async (req, res, next) => {
         artist: 'Roniit',
         handlers: {
           success: resolve,
-          error: reject
-        }
+          error: reject,
+        },
       });
     });
   const getArtistTopTracks = () =>
@@ -194,8 +228,8 @@ exports.getLastfm = async (req, res, next) => {
           success: ({ toptracks }) => {
             resolve(toptracks.track.slice(0, 10));
           },
-          error: reject
-        }
+          error: reject,
+        },
       });
     });
   const getArtistTopAlbums = () =>
@@ -206,8 +240,8 @@ exports.getLastfm = async (req, res, next) => {
           success: ({ topalbums }) => {
             resolve(topalbums.album.slice(0, 3));
           },
-          error: reject
-        }
+          error: reject,
+        },
       });
     });
   try {
@@ -222,26 +256,26 @@ exports.getLastfm = async (req, res, next) => {
       stats: artistInfo.stats,
       similar: artistInfo.similar ? artistInfo.similar.artist : [],
       topTracks,
-      topAlbums
+      topAlbums,
     };
     res.render('api/lastfm', {
       title: 'Last.fm API',
-      artist
+      artist,
     });
   } catch (err) {
     if (err.error !== undefined) {
       console.error(err);
       // see error code list: https://www.last.fm/api/errorcodes
       switch (err.error) {
-      // potentially handle each code uniquely
+        // potentially handle each code uniquely
         case 10: // Invalid API key
           res.render('api/lastfm', {
-            error: err
+            error: err,
           });
           break;
         default:
           res.render('api/lastfm', {
-            error: err
+            error: err,
           });
       }
     } else {
@@ -260,17 +294,19 @@ exports.getTwitter = async (req, res, next) => {
     consumer_key: process.env.TWITTER_KEY,
     consumer_secret: process.env.TWITTER_SECRET,
     access_token: token.accessToken,
-    access_token_secret: token.tokenSecret
+    access_token_secret: token.tokenSecret,
   });
   try {
-    const { data: { statuses: tweets } } = await T.get('search/tweets', {
+    const {
+      data: { statuses: tweets },
+    } = await T.get('search/tweets', {
       q: 'nodejs since:2013-01-01',
       geocode: '40.71448,-74.00598,5mi',
-      count: 10
+      count: 10,
     });
     res.render('api/twitter', {
       title: 'Twitter API',
-      tweets
+      tweets,
     });
   } catch (error) {
     next(error);
@@ -295,10 +331,12 @@ exports.postTwitter = (req, res, next) => {
     consumer_key: process.env.TWITTER_KEY,
     consumer_secret: process.env.TWITTER_SECRET,
     access_token: token.accessToken,
-    access_token_secret: token.tokenSecret
+    access_token_secret: token.tokenSecret,
   });
   T.post('statuses/update', { status: req.body.tweet }, (err) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     req.flash('success', { msg: 'Your tweet has been posted.' });
     res.redirect('/api/twitter');
   });
@@ -319,10 +357,14 @@ exports.getSteam = async (req, res, next) => {
     url.search = urlParams.toString();
     return url.toString();
   };
-    // get the list of the recently played games, pick the most recent one and get its achievements
+  // get the list of the recently played games, pick the most recent one and get its achievements
   const getPlayerAchievements = () => {
-    const recentGamesURL = makeURL('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/', params);
-    return axios.get(recentGamesURL)
+    const recentGamesURL = makeURL(
+      'http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/',
+      params,
+    );
+    return axios
+      .get(recentGamesURL)
       .then(({ data }) => {
         // handle if player owns no games
         if (Object.keys(data.response).length === 0) {
@@ -333,15 +375,17 @@ exports.getSteam = async (req, res, next) => {
           return null;
         }
         params.appid = data.response.games[0].appid;
-        const achievementsURL = makeURL('http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/', params);
-        return axios.get(achievementsURL)
-          .then(({ data }) => {
-            // handle if there are no achievements for most recent game
-            if (!data.playerstats.achievements) {
-              return null;
-            }
-            return data.playerstats;
-          });
+        const achievementsURL = makeURL(
+          'http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/',
+          params,
+        );
+        return axios.get(achievementsURL).then(({ data }) => {
+          // handle if there are no achievements for most recent game
+          if (!data.playerstats.achievements) {
+            return null;
+          }
+          return data.playerstats;
+        });
       })
       .catch((err) => {
         if (err.response) {
@@ -356,7 +400,8 @@ exports.getSteam = async (req, res, next) => {
   const getPlayerSummaries = () => {
     params.steamids = steamId;
     const url = makeURL('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/', params);
-    return axios.get(url)
+    return axios
+      .get(url)
       .then(({ data }) => data)
       .catch(() => Promise.reject(new Error('There was an error while getting player summary')));
   };
@@ -364,7 +409,8 @@ exports.getSteam = async (req, res, next) => {
     params.include_appinfo = 1;
     params.include_played_free_games = 1;
     const url = makeURL('http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/', params);
-    return axios.get(url)
+    return axios
+      .get(url)
       .then(({ data }) => data)
       .catch(() => Promise.reject(new Error('There was an error while getting owned games')));
   };
@@ -376,7 +422,7 @@ exports.getSteam = async (req, res, next) => {
       title: 'Steam Web API',
       ownedGames: ownedGames.response,
       playerAchievements: playerstats,
-      playerSummary: playerSummaries.response.players[0]
+      playerSummary: playerSummaries.response.players[0],
     });
   } catch (err) {
     next(err);
@@ -390,7 +436,7 @@ exports.getSteam = async (req, res, next) => {
 exports.getStripe = (req, res) => {
   res.render('api/stripe', {
     title: 'Stripe API',
-    publishableKey: process.env.STRIPE_PKEY
+    publishableKey: process.env.STRIPE_PKEY,
   });
 };
 
@@ -400,19 +446,22 @@ exports.getStripe = (req, res) => {
  */
 exports.postStripe = (req, res) => {
   const { stripeToken, stripeEmail } = req.body;
-  stripe.charges.create({
-    amount: 395,
-    currency: 'usd',
-    source: stripeToken,
-    description: stripeEmail
-  }, (err) => {
-    if (err && err.type === 'StripeCardError') {
-      req.flash('errors', { msg: 'Your card has been declined.' });
-      return res.redirect('/api/stripe');
-    }
-    req.flash('success', { msg: 'Your card has been successfully charged.' });
-    res.redirect('/api/stripe');
-  });
+  stripe.charges.create(
+    {
+      amount: 395,
+      currency: 'usd',
+      source: stripeToken,
+      description: stripeEmail,
+    },
+    (err) => {
+      if (err && err.type === 'StripeCardError') {
+        req.flash('errors', { msg: 'Your card has been declined.' });
+        return res.redirect('/api/stripe');
+      }
+      req.flash('success', { msg: 'Your card has been successfully charged.' });
+      res.redirect('/api/stripe');
+    },
+  );
 };
 
 /**
@@ -421,7 +470,7 @@ exports.postStripe = (req, res) => {
  */
 exports.getTwilio = (req, res) => {
   res.render('api/twilio', {
-    title: 'Twilio API'
+    title: 'Twilio API',
   });
 };
 
@@ -431,8 +480,10 @@ exports.getTwilio = (req, res) => {
  */
 exports.postTwilio = (req, res, next) => {
   const validationErrors = [];
-  if (validator.isEmpty(req.body.number)) validationErrors.push({ msg: 'Phone number is required.' });
-  if (validator.isEmpty(req.body.message)) validationErrors.push({ msg: 'Message cannot be blank.' });
+  if (validator.isEmpty(req.body.number))
+    validationErrors.push({ msg: 'Phone number is required.' });
+  if (validator.isEmpty(req.body.message))
+    validationErrors.push({ msg: 'Message cannot be blank.' });
 
   if (validationErrors.length) {
     req.flash('errors', validationErrors);
@@ -442,12 +493,15 @@ exports.postTwilio = (req, res, next) => {
   const message = {
     to: req.body.number,
     from: '+13472235148',
-    body: req.body.message
+    body: req.body.message,
   };
-  twilio.messages.create(message).then((sentMessage) => {
-    req.flash('success', { msg: `Text send to ${sentMessage.to}` });
-    res.redirect('/api/twilio');
-  }).catch(next);
+  twilio.messages
+    .create(message)
+    .then((sentMessage) => {
+      req.flash('success', { msg: `Text send to ${sentMessage.to}` });
+      res.redirect('/api/twilio');
+    })
+    .catch(next);
 };
 
 /**
@@ -458,13 +512,23 @@ exports.getTwitch = async (req, res, next) => {
   const twitchID = req.user.twitch;
 
   const getUser = (userID) =>
-    axios.get(`https://api.twitch.tv/helix/users?id=${userID}`, { headers: { Authorization: `Bearer ${token.accessToken}` } })
+    axios
+      .get(`https://api.twitch.tv/helix/users?id=${userID}`, {
+        headers: { Authorization: `Bearer ${token.accessToken}` },
+      })
       .then(({ data }) => data)
-      .catch((err) => Promise.reject(new Error(`There was an error while getting user data ${err}`)));
+      .catch((err) =>
+        Promise.reject(new Error(`There was an error while getting user data ${err}`)),
+      );
   const getFollowers = () =>
-    axios.get(`https://api.twitch.tv/helix/users/follows?to_id=${twitchID}`, { headers: { Authorization: `Bearer ${token.accessToken}` } })
+    axios
+      .get(`https://api.twitch.tv/helix/users/follows?to_id=${twitchID}`, {
+        headers: { Authorization: `Bearer ${token.accessToken}` },
+      })
       .then(({ data }) => data)
-      .catch((err) => Promise.reject(new Error(`There was an error while getting followers ${err}`)));
+      .catch((err) =>
+        Promise.reject(new Error(`There was an error while getting followers ${err}`)),
+      );
 
   try {
     const yourTwitchUser = await getUser(twitchID);
@@ -487,7 +551,7 @@ exports.getTwitch = async (req, res, next) => {
  */
 exports.getClockwork = (req, res) => {
   res.render('api/clockwork', {
-    title: 'Clockwork SMS API'
+    title: 'Clockwork SMS API',
   });
 };
 
@@ -499,15 +563,16 @@ exports.postClockwork = (req, res, next) => {
   const message = {
     To: req.body.telephone,
     From: 'Hackathon',
-    Content: 'Hello from the Hackathon Starter'
+    Content: 'Hello from the Hackathon Starter',
   };
   clockwork.sendSms(message, (err, responseData) => {
-    if (err) { return next(err.errDesc); }
+    if (err) {
+      return next(err.errDesc);
+    }
     req.flash('success', { msg: `Text sent to ${responseData.responses[0].to}` });
     res.redirect('/api/clockwork');
   });
 };
-
 
 /**
  * GET /api/chart
@@ -515,7 +580,8 @@ exports.postClockwork = (req, res, next) => {
  */
 exports.getChart = async (req, res, next) => {
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&outputsize=compact&apikey=${process.env.ALPHA_VANTAGE_KEY}`;
-  axios.get(url)
+  axios
+    .get(url)
     .then((response) => {
       const arr = response.data['Time Series (Daily)'];
       let dates = [];
@@ -533,9 +599,10 @@ exports.getChart = async (req, res, next) => {
       res.render('api/chart', {
         title: 'Chart',
         dates,
-        closing
+        closing,
       });
-    }).catch((err) => {
+    })
+    .catch((err) => {
       next(err);
     });
 };
@@ -553,7 +620,7 @@ exports.getInstagram = async (req, res, next) => {
     const myRecentMedia = await userSelfMediaRecentAsync();
     res.render('api/instagram', {
       title: 'Instagram API',
-      myRecentMedia
+      myRecentMedia,
     });
   } catch (error) {
     next(error);
@@ -568,35 +635,39 @@ exports.getPayPal = (req, res, next) => {
   paypal.configure({
     mode: 'sandbox',
     client_id: process.env.PAYPAL_ID,
-    client_secret: process.env.PAYPAL_SECRET
+    client_secret: process.env.PAYPAL_SECRET,
   });
 
   const paymentDetails = {
     intent: 'sale',
     payer: {
-      payment_method: 'paypal'
+      payment_method: 'paypal',
     },
     redirect_urls: {
       return_url: process.env.PAYPAL_RETURN_URL,
-      cancel_url: process.env.PAYPAL_CANCEL_URL
+      cancel_url: process.env.PAYPAL_CANCEL_URL,
     },
-    transactions: [{
-      description: 'Hackathon Starter',
-      amount: {
-        currency: 'USD',
-        total: '1.99'
-      }
-    }]
+    transactions: [
+      {
+        description: 'Hackathon Starter',
+        amount: {
+          currency: 'USD',
+          total: '1.99',
+        },
+      },
+    ],
   };
 
   paypal.payment.create(paymentDetails, (err, payment) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     const { links, id } = payment;
     req.session.paymentId = id;
     for (let i = 0; i < links.length; i++) {
       if (links[i].rel === 'approval_url') {
         res.render('api/paypal', {
-          approvalUrl: links[i].href
+          approvalUrl: links[i].href,
         });
       }
     }
@@ -613,7 +684,7 @@ exports.getPayPalSuccess = (req, res) => {
   paypal.payment.execute(paymentId, paymentDetails, (err) => {
     res.render('api/paypal', {
       result: true,
-      success: !err
+      success: !err,
     });
   });
 };
@@ -626,7 +697,7 @@ exports.getPayPalCancel = (req, res) => {
   req.session.paymentId = null;
   res.render('api/paypal', {
     result: true,
-    canceled: true
+    canceled: true,
   });
 };
 
@@ -636,13 +707,17 @@ exports.getPayPalCancel = (req, res) => {
  */
 exports.getLob = async (req, res, next) => {
   let recipientName;
-  if (req.user) { recipientName = req.user.profile.name; } else { recipientName = 'John Doe'; }
+  if (req.user) {
+    recipientName = req.user.profile.name;
+  } else {
+    recipientName = 'John Doe';
+  }
   const addressTo = {
     name: recipientName,
     address_line1: '123 Main Street',
     address_city: 'New York',
     address_state: 'NY',
-    address_zip: '94107'
+    address_zip: '94107',
   };
   const addressFrom = {
     name: 'Hackathon Starter',
@@ -651,26 +726,30 @@ exports.getLob = async (req, res, next) => {
     address_city: 'Chicago',
     address_state: 'IL',
     address_zip: '60012',
-    address_country: 'US'
+    address_country: 'US',
   };
 
-  const lookupZip = () => lob.usZipLookups.lookup({ zip_code: '94107' })
-    .then((zipdetails) => (zipdetails))
-    .catch((error) => Promise.reject(new Error(`Could not get zip code details: ${error}`)));
+  const lookupZip = () =>
+    lob.usZipLookups
+      .lookup({ zip_code: '94107' })
+      .then((zipdetails) => zipdetails)
+      .catch((error) => Promise.reject(new Error(`Could not get zip code details: ${error}`)));
 
-  const createAndMailLetter = () => lob.letters.create({
-    description: 'My First Class Letter',
-    to: addressTo,
-    from: addressFrom,
-    // file: minified version of https://github.com/lob/lob-node/blob/master/examples/html/letter.html with slight changes as an example
-    file: `<html><head><meta charset="UTF-8"><style>body{width:8.5in;height:11in;margin:0;padding:0}.page{page-break-after:always;position:relative;width:8.5in;height:11in}.page-content{position:absolute;width:8.125in;height:10.625in;left:1in;top:1in}.text{position:relative;left:20px;top:3in;width:6in;font-size:14px}</style></head>
+  const createAndMailLetter = () =>
+    lob.letters
+      .create({
+        description: 'My First Class Letter',
+        to: addressTo,
+        from: addressFrom,
+        // file: minified version of https://github.com/lob/lob-node/blob/master/examples/html/letter.html with slight changes as an example
+        file: `<html><head><meta charset="UTF-8"><style>body{width:8.5in;height:11in;margin:0;padding:0}.page{page-break-after:always;position:relative;width:8.5in;height:11in}.page-content{position:absolute;width:8.125in;height:10.625in;left:1in;top:1in}.text{position:relative;left:20px;top:3in;width:6in;font-size:14px}</style></head>
           <body><div class="page"><div class="page-content"><div class="text">
           Hello ${addressTo.name}, <p> We would like to welcome you to the community! Thanks for being a part of the team! <p><p> Cheer,<br>${addressFrom.name}
           </div></div></div></body></html>`,
-    color: false
-  })
-    .then((letter) => (letter))
-    .catch((error) => Promise.reject(new Error(`Could not create and send letter: ${error}`)));
+        color: false,
+      })
+      .then((letter) => letter)
+      .catch((error) => Promise.reject(new Error(`Could not create and send letter: ${error}`)));
 
   try {
     const uspsLetter = await createAndMailLetter();
@@ -692,7 +771,7 @@ exports.getLob = async (req, res, next) => {
 
 exports.getFileUpload = (req, res) => {
   res.render('api/upload', {
-    title: 'File Upload'
+    title: 'File Upload',
   });
 };
 
@@ -707,11 +786,12 @@ exports.postFileUpload = (req, res) => {
  */
 exports.getPinterest = (req, res, next) => {
   const token = req.user.tokens.find((token) => token.kind === 'pinterest');
-  axios.get(`https://api.pinterest.com/v1/me/boards?access_token=${token.accessToken}`)
+  axios
+    .get(`https://api.pinterest.com/v1/me/boards?access_token=${token.accessToken}`)
     .then((response) => {
       res.render('api/pinterest', {
         title: 'Pinterest API',
-        boards: response.data.data
+        boards: response.data.data,
       });
     })
     .catch((error) => {
@@ -726,7 +806,8 @@ exports.postPinterest = (req, res, next) => {
   const validationErrors = [];
   if (validator.isEmpty(req.body.board)) validationErrors.push({ msg: 'Board is required.' });
   if (validator.isEmpty(req.body.note)) validationErrors.push({ msg: 'Note cannot be blank.' });
-  if (validator.isEmpty(req.body.image_url)) validationErrors.push({ msg: 'Image URL cannot be blank.' });
+  if (validator.isEmpty(req.body.image_url))
+    validationErrors.push({ msg: 'Image URL cannot be blank.' });
 
   if (validationErrors.length) {
     req.flash('errors', validationErrors);
@@ -738,10 +819,11 @@ exports.postPinterest = (req, res, next) => {
     board: req.body.board,
     note: req.body.note,
     link: req.body.link,
-    image_url: req.body.image_url
+    image_url: req.body.image_url,
   };
 
-  axios.post(`https://api.pinterest.com/v1/pins/?access_token=${token.accessToken}`, formData)
+  axios
+    .post(`https://api.pinterest.com/v1/pins/?access_token=${token.accessToken}`, formData)
     .then(() => {
       req.flash('success', { msg: 'Pin created' });
       res.redirect('/api/pinterest');
@@ -768,68 +850,75 @@ h=500&w=800&`;
     app_id: process.env.HERE_APP_ID,
     app_code: process.env.HERE_APP_CODE,
     title: 'Here Maps API',
-    imageMapURL
+    imageMapURL,
   });
 };
 
 exports.getGoogleMaps = (req, res) => {
   res.render('api/google-maps', {
     title: 'Google Maps API',
-    google_map_api_key: process.env.GOOGLE_MAP_API_KEY
+    google_map_api_key: process.env.GOOGLE_MAP_API_KEY,
   });
 };
 
 exports.getGoogleDrive = (req, res) => {
   const token = req.user.tokens.find((token) => token.kind === 'google');
   const authObj = new google.auth.OAuth2({
-    access_type: 'offline'
+    access_type: 'offline',
   });
   authObj.setCredentials({
-    access_token: token.accessToken
+    access_token: token.accessToken,
   });
 
   const drive = google.drive({
     version: 'v3',
-    auth: authObj
+    auth: authObj,
   });
 
-  drive.files.list({
-    fields: 'files(iconLink, webViewLink, name)'
-  }, (err, response) => {
-    if (err) return console.log(`The API returned an error: ${err}`);
-    res.render('api/google-drive', {
-      title: 'Google Drive API',
-      files: response.data.files,
-    });
-  });
+  drive.files.list(
+    {
+      fields: 'files(iconLink, webViewLink, name)',
+    },
+    (err, response) => {
+      if (err) return console.log(`The API returned an error: ${err}`);
+      res.render('api/google-drive', {
+        title: 'Google Drive API',
+        files: response.data.files,
+      });
+    },
+  );
 };
 
 exports.getGoogleSheets = (req, res) => {
   const token = req.user.tokens.find((token) => token.kind === 'google');
   const authObj = new google.auth.OAuth2({
-    access_type: 'offline'
+    access_type: 'offline',
   });
   authObj.setCredentials({
-    access_token: token.accessToken
+    access_token: token.accessToken,
   });
 
   const sheets = google.sheets({
     version: 'v4',
-    auth: authObj
+    auth: authObj,
   });
 
-  const url = 'https://docs.google.com/spreadsheets/d/12gm6fRAp0bC8TB2vh7sSPT3V75Ug99JaA9L0PqiWS2s/edit#gid=0';
+  const url =
+    'https://docs.google.com/spreadsheets/d/12gm6fRAp0bC8TB2vh7sSPT3V75Ug99JaA9L0PqiWS2s/edit#gid=0';
   const re = /spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
   const id = url.match(re)[1];
 
-  sheets.spreadsheets.values.get({
-    spreadsheetId: id,
-    range: 'Class Data!A1:F',
-  }, (err, response) => {
-    if (err) return console.log(`The API returned an error: ${err}`);
-    res.render('api/google-sheets', {
-      title: 'Google Sheets API',
-      values: response.data.values,
-    });
-  });
+  sheets.spreadsheets.values.get(
+    {
+      spreadsheetId: id,
+      range: 'Class Data!A1:F',
+    },
+    (err, response) => {
+      if (err) return console.log(`The API returned an error: ${err}`);
+      res.render('api/google-sheets', {
+        title: 'Google Sheets API',
+        values: response.data.values,
+      });
+    },
+  );
 };

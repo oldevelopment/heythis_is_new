@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
  * Contact form page.
  */
 exports.getContact = (req, res) => {
-  const unknownUser = !(req.user);
+  const unknownUser = !req.user;
 
   res.render('contact', {
     title: 'Contact',
@@ -24,9 +24,11 @@ exports.postContact = (req, res) => {
   let fromEmail;
   if (!req.user) {
     if (validator.isEmpty(req.body.name)) validationErrors.push({ msg: 'Please enter your name' });
-    if (!validator.isEmail(req.body.email)) validationErrors.push({ msg: 'Please enter a valid email address.' });
+    if (!validator.isEmail(req.body.email))
+      validationErrors.push({ msg: 'Please enter a valid email address.' });
   }
-  if (validator.isEmpty(req.body.message)) validationErrors.push({ msg: 'Please enter your message.' });
+  if (validator.isEmpty(req.body.message))
+    validationErrors.push({ msg: 'Please enter your message.' });
 
   if (validationErrors.length) {
     req.flash('errors', validationErrors);
@@ -45,33 +47,36 @@ exports.postContact = (req, res) => {
     service: 'SendGrid',
     auth: {
       user: process.env.SENDGRID_USER,
-      pass: process.env.SENDGRID_PASSWORD
-    }
+      pass: process.env.SENDGRID_PASSWORD,
+    },
   });
   const mailOptions = {
     to: 'your@email.com',
     from: `${fromName} <${fromEmail}>`,
     subject: 'Contact Form | Hackathon Starter',
-    text: req.body.message
+    text: req.body.message,
   };
 
-  return transporter.sendMail(mailOptions)
+  return transporter
+    .sendMail(mailOptions)
     .then(() => {
       req.flash('success', { msg: 'Email has been sent successfully!' });
       res.redirect('/contact');
     })
     .catch((err) => {
       if (err.message === 'self signed certificate in certificate chain') {
-        console.log('WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.');
+        console.log(
+          'WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.',
+        );
         transporter = nodemailer.createTransport({
           service: 'SendGrid',
           auth: {
             user: process.env.SENDGRID_USER,
-            pass: process.env.SENDGRID_PASSWORD
+            pass: process.env.SENDGRID_PASSWORD,
           },
           tls: {
-            rejectUnauthorized: false
-          }
+            rejectUnauthorized: false,
+          },
         });
         return transporter.sendMail(mailOptions);
       }
