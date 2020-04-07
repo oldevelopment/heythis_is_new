@@ -8,9 +8,7 @@ describe('User Model', () => {
     const UserMock = sinon.mock(new User({ email: 'test@gmail.com', password: 'root' }));
     const user = UserMock.object;
 
-    UserMock
-      .expects('save')
-      .yields(null);
+    UserMock.expects('save').yields(null);
 
     user.save((err) => {
       UserMock.verify();
@@ -24,12 +22,10 @@ describe('User Model', () => {
     const UserMock = sinon.mock(new User({ email: 'test@gmail.com', password: 'root' }));
     const user = UserMock.object;
     const expectedError = {
-      name: 'ValidationError'
+      name: 'ValidationError',
     };
 
-    UserMock
-      .expects('save')
-      .yields(expectedError);
+    UserMock.expects('save').yields(expectedError);
 
     user.save((err, result) => {
       UserMock.verify();
@@ -45,12 +41,10 @@ describe('User Model', () => {
     const user = UserMock.object;
     const expectedError = {
       name: 'MongoError',
-      code: 11000
+      code: 11000,
     };
 
-    UserMock
-      .expects('save')
-      .yields(expectedError);
+    UserMock.expects('save').yields(expectedError);
 
     user.save((err, result) => {
       UserMock.verify();
@@ -66,7 +60,7 @@ describe('User Model', () => {
     const userMock = sinon.mock(User);
     const expectedUser = {
       _id: '5700a128bd97c1341d8fb365',
-      email: 'test@gmail.com'
+      email: 'test@gmail.com',
     };
 
     userMock
@@ -85,7 +79,7 @@ describe('User Model', () => {
   it('should remove user by email', (done) => {
     const userMock = sinon.mock(User);
     const expectedResult = {
-      nRemoved: 1
+      nRemoved: 1,
     };
 
     userMock
@@ -103,10 +97,12 @@ describe('User Model', () => {
   });
 
   it('should check password', (done) => {
-    const UserMock = sinon.mock(new User({
-      email: 'test@gmail.com',
-      password: '$2b$10$LhjJj5s1pLY/I4eCRaHaB.Fli8NBT8z1L8YF4/pmVU.5pERg4Z1AC'
-    }));
+    const UserMock = sinon.mock(
+      new User({
+        email: 'test@gmail.com',
+        password: '$2b$10$LhjJj5s1pLY/I4eCRaHaB.Fli8NBT8z1L8YF4/pmVU.5pERg4Z1AC',
+      }),
+    );
 
     const user = UserMock.object;
 
