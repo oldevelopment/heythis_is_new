@@ -1,0 +1,45 @@
+{"comments" : {
+"comment one " : "delete before production Only this comments object",
+"comment two " : "this file is analogos to .env Stefan you should figure out how to use ncong instead of .env",
+"comment three " : "this file also provides all auth objects for various social media",
+"comment four " : "",
+"comment five " : ""
+},
+  "application": {
+    "port": 80,
+    "local": false,
+    "allowedOrigins": "https://heythisis-app.firebaseapp.com"
+  },
+  "newrelic": {
+    "enabled": "true",
+    "licenseKey": "fc70992082f52f57e541815058ccc9cf59e7ef17",
+    "applicationName": "Catching Up With Us API"
+  },
+  "auths": {
+    "google": {
+      "clientID": "290302943041-0pvu1npc973sdedidon2j11305qcc4pt.apps.googleusercontent.com",
+      "clientSecret": "6tNh33D3WGBm-4BECYpvLgDU",
+      "callbackURL": "https://europe-west1-heythisis-api.cloudfunctions.net/api/auth/google/callback",
+      "itemUpdateCount": 50
+    },
+    "instagram": {
+      "clientID": "857b40671c1a4279a5332b2e5aeb609d",
+      "clientSecret": "b230056b6cb94b7d81b23b1bf1bc570c",
+      "callbackURL": "https://europe-west1-heythisis-api.cloudfunctions.net/api/auth/instagram/callback",
+      "itemUpdateCount": 50
+    },
+    "facebook": {
+      "clientID": "121779641682451",
+      "clientSecret": "5f27a8cae1d354a8523f3f0aa2623429",
+      "callbackURL": "https://europe-west1-heythisis-api.cloudfunctions.net/api/auth/facebook/callback",
+      "profileFields": ["id", "displayName", "email"],
+      "itemUpdateCount": 50
+    }
+  },
+  "databases": {
+    "mongodb": "mongodb://CatchingUpWithUsAtlasAdmin:oZ9k0nyazaAUYeB8IjBJ@catchingupwithuscluster-shard-00-00-lhp1a.mongodb.net:27017,catchingupwithuscluster-shard-00-01-lhp1a.mongodb.net:27017,catchingupwithuscluster-shard-00-02-lhp1a.mongodb.net:27017/socialmedia?ssl=true&replicaSet=CatchingUpWithUsCluster-shard-0&authSource=admin"
+  },
+  "logging": {
+    "level": "info"
+  }
+}
