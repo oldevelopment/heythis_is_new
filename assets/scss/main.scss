@@ -1,0 +1,9 @@
+@import './components/index.scss';
+
+.theme--light.v-application {
+  background-color: #f2f7fa;
+}
+
+.vue-line-clamp {
+  word-break: normal !important;
+}
