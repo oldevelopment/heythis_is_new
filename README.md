@@ -1504,9 +1504,6 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-<<<<<<< HEAD
-
-=======
 
 Backend dev changelog 
 25th of march 2020 added keys for fb and google and insta
@@ -1514,4 +1511,3 @@ Backend dev changelog
 27th of march all 3 logins are now working ( using my personal credtials which points to a larger problem in the way alviono has configured the app)
 7th April added last commits to graphqwl and read in front in dev
 
->>>>>>> d60321e3223da6328cb6de934a65262d64a9f8b1
