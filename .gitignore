@@ -50,12 +50,3 @@ Thumbs.db
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
-
-# nuxt.js build output
-.nuxt
-.next
-dist
-.serverless
-lib-cov
-coverage
-.eslintcache
