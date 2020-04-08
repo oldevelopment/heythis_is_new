@@ -20,17 +20,36 @@
           <v-spacer></v-spacer>
 
           <template v-if="!signedIn">
-            <a href="/auth/google"><v-btn class="text-capitalize" text>Register</v-btn></a>
-            <a href="/auth/google"><v-btn class="text-capitalize" text>Login</v-btn></a>
+            <v-btn to="/register" class="text-capitalize" text>Register</v-btn>
+            <v-btn to="/login" class="text-capitalize" text>Login</v-btn>
           </template>
 
           <template v-else>
             <span v-text="user.profile.name" class="mr-3 title" />
-            <a href="/auth/logout">
-              <v-avatar size="36">
-                <v-img :src="user.profile.picture" />
-              </v-avatar>
-            </a>
+            <v-menu min-width="200">
+              <template v-slot:activator="{ on }">
+                <v-avatar size="36" v-on="on" @click.stop="">
+                  <v-img :src="user.profile.picture" />
+                </v-avatar>
+              </template>
+              <v-list subheader>
+                <v-list-item>
+                  <v-list-item-icon>
+                    <v-icon>mdi-account-circle</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>Mijn profiel</v-list-item-title>
+                </v-list-item>
+                <v-divider />
+                <v-list-item link>
+                  <v-list-item-icon>
+                    <v-icon>mdi-logout-variant</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    <a href="/auth/logout" style="text-decoration: none">Uitloggen</a>
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </template>
         </v-col>
       </v-row>
@@ -54,21 +73,6 @@ export default Vue.extend({
 
     user(): SocialUser {
       return this.$store.state.account.user;
-    },
-  },
-
-  mounted() {
-    console.log(this.$store.state.account);
-  },
-
-  methods: {
-    signIn() {
-      // this.$store.dispatch('account/signIn');
-    },
-
-    async signOut() {
-      // await this.$store.dispatch('account/signOut');
-      await this.$router.push('/auth/logout');
     },
   },
 });

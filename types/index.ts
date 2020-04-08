@@ -105,4 +105,11 @@ export type ContentAttachment = {
   type: string;
 };
 
+export type Channel = {
+  name: string;
+  icon: string;
+  color: string;
+  value: ContentChannel;
+};
+
 export type ContentChannel = 'Any' | 'YouTube' | 'Facebook' | 'Instagram' | 'Twitter';

@@ -18,14 +18,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { ContentChannel } from '@/types';
-
-type Channel = {
-  name: string;
-  icon: string;
-  color: string;
-  value: ContentChannel;
-};
+import { Channel, ContentChannel } from '@/types';
 
 const channels: Channel[] = [
   {
