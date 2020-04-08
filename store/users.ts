@@ -41,7 +41,10 @@ const mod: AsyncModule<UsersState, any> = {
         }
 
         return commitAsync(
-          this.$axios.$get<UserProfile[]>(`/users`, { params }),
+          this.$axios.$get<UserProfile[]>(
+            `https://europe-west1-heythisis-api.cloudfunctions.net/api/users`,
+            { params },
+          ),
           params,
         );
       },
@@ -57,7 +60,11 @@ const mod: AsyncModule<UsersState, any> = {
           return Promise.resolve(state.users);
         }
 
-        return commitAsync(this.$axios.$get<UserProfile[]>(`/users/new`));
+        return commitAsync(
+          this.$axios.$get<UserProfile[]>(
+            `https://europe-west1-heythisis-api.cloudfunctions.net/api/users/new`,
+          ),
+        );
       },
 
       resolved(state, users: UserProfile[]) {

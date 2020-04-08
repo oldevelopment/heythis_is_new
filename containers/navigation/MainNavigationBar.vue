@@ -19,15 +19,19 @@
 
           <v-spacer></v-spacer>
 
-          <!-- <template v-if="!signedIn">
-          <v-btn @click="signIn" class="text-capitalize" text>Register</v-btn>
-          <v-btn @click="signIn" class="text-capitalize" text>Login</v-btn>
-        </template>
+          <template v-if="!signedIn">
+            <a href="/auth/google"><v-btn class="text-capitalize" text>Register</v-btn></a>
+            <a href="/auth/google"><v-btn class="text-capitalize" text>Login</v-btn></a>
+          </template>
 
-        <template v-else>
-          <v-btn to="/isaplan" class="text-capitalize" text>My portal</v-btn>
-          <v-btn @click="signOut" class="text-capitalize" text>Logout</v-btn>
-        </template> -->
+          <template v-else>
+            <span v-text="user.profile.name" class="mr-3 title" />
+            <a href="/auth/logout">
+              <v-avatar size="36">
+                <v-img :src="user.profile.picture" />
+              </v-avatar>
+            </a>
+          </template>
         </v-col>
       </v-row>
     </v-container>
@@ -36,6 +40,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { SocialUser } from '@/types';
 
 export default Vue.extend({
   data() {
@@ -46,15 +51,24 @@ export default Vue.extend({
     signedIn(): boolean {
       return this.$store.getters['account/isAuthenticated'];
     },
+
+    user(): SocialUser {
+      return this.$store.state.account.user;
+    },
+  },
+
+  mounted() {
+    console.log(this.$store.state.account);
   },
 
   methods: {
     signIn() {
-      this.$store.dispatch('account/signIn');
+      // this.$store.dispatch('account/signIn');
     },
 
-    signOut() {
-      this.$store.dispatch('account/signOut');
+    async signOut() {
+      // await this.$store.dispatch('account/signOut');
+      await this.$router.push('/auth/logout');
     },
   },
 });

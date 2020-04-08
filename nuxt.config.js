@@ -65,7 +65,7 @@ export default {
     init(axios) {
       axios.defaults.withCredentials = true;
     },
-    baseURL: 'https://europe-west1-heythisis-api.cloudfunctions.net/api',
+    baseURL: '/',
   },
   /*
    ** vuetify module configuration
@@ -89,5 +89,19 @@ export default {
      ** You can extend webpack config here
      */
     extend(config, ctx) {},
+  },
+
+  router: {
+    extendRoutes(routes, resolve) {
+      routes.push({
+        name: 'auth/google',
+        path: '/auth/google',
+      });
+
+      routes.push({
+        name: 'logout',
+        path: '/auth/logout',
+      });
+    },
   },
 };

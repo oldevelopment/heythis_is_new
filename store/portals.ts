@@ -50,7 +50,12 @@ const mod: AsyncModule<PortalState, any> = {
           return Promise.resolve(state.portals[name]);
         }
 
-        return commitAsync(this.$axios.$get(`/sites/${name}`), name);
+        return commitAsync(
+          this.$axios.$get(
+            `https://europe-west1-heythisis-api.cloudfunctions.net/api/sites/${name}`,
+          ),
+          name,
+        );
       },
 
       resolved(state, portal: Portal, name: string) {

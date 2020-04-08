@@ -237,7 +237,9 @@ app.use(
 // app.get('/', homeController.index);
 // app.get('/login', userController.getLogin);
 // app.post('/login', userController.postLogin);
-// app.get('/logout', userController.logout);
+app.get('/auth/logout', userController.logout);
+app.get('/api/profile', passportConfig.isAuthenticated, userController.getUser);
+app.post('/logout', userController.logout);
 // app.get('/forgot', userController.getForgot);
 // app.post('/forgot', userController.postForgot);
 // app.get('/reset/:token', userController.getReset);
@@ -423,7 +425,7 @@ app.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+    res.redirect('/');
   },
 );
 app.get('/auth/twitter', passport.authenticate('twitter'));
@@ -516,13 +518,13 @@ if (process.env.NODE_ENV === 'development') {
 
 async function start() {
   // We get Nuxt instance
-  const nuxt = await loadNuxt(isDev ? 'dev' : 'start');
+  const nuxt = await loadNuxt(app.get('env') === 'development' ? 'dev' : 'start');
 
   // Render every route with Nuxt.js
   app.use(nuxt.render);
 
   // Build only in dev mode with hot-reloading
-  if (isDev) {
+  if (app.get('env') === 'development') {
     build(nuxt);
   }
   // Listen the server

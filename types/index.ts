@@ -1,5 +1,18 @@
 export type UserType = 'free' | 'premium';
 
+export type SocialUser = {
+  profile: {
+    name: string;
+    picture: string;
+  };
+  tokens: string[];
+  _id: string;
+  email: string;
+  google: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type UserProfile = {
   firstName: string;
   lastName: string;
