@@ -89,10 +89,8 @@ const RootQueryType = new GraphQLObjectType({
     'This document represents the user and all the information we have for them',
   fields: () => ({
     id: { type: GraphQLID },
-    firstName: {
-      type: GraphQLString,
-    },
-    lastName: { type: GraphQLString },
+    firstName: { type: GraphQLString, resolve: (user) => user.firstname },
+    lastName: { type: GraphQLString, resolve: (user) => user.lastname },
     profile: {
       firstname: { type: GraphQLString },
       lastname: { type: GraphQLString },
@@ -116,7 +114,7 @@ const RootQueryType = new GraphQLObjectType({
       grid: { type: GraphQLString },
       post: { type: GraphQLString },
     },
-    site: { GraphQLString },
+    site: { GraphQLString, resolve: (user) => user.site },
     google: {
       id: { type: GraphQLString },
       token: { type: GraphQLString },
@@ -181,7 +179,7 @@ const RootMutationType = new GraphQLObjectType({
       grid: GraphQLString,
       post: GraphQLString,
     },
-    site: GraphQLString,
+    site: { GraphQLString, resolve: (user) => user.site },
     google: {
       id: GraphQLString,
       token: GraphQLString,
@@ -225,10 +223,10 @@ app.use(
   '/graphql',
   ExpressGraphQL({
     schema,
-    rootValue: {
-      query: () => {},
-      mutation: (args) => {},
-    },
+    // rootValue: {
+    //   query: () => {},
+    //   mutation: (args) => {},
+    // },
     graphiql: true,
   })
 );
