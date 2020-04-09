@@ -36,7 +36,8 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
 dotenv.config({ path: '.env.example' });
-
+// load mongoose model
+const User = require('./models/User');
 /**
  * Controllers (route handlers).
  */
@@ -73,63 +74,193 @@ mongoose.connection.on('error', (err) => {
 });
 
 // Graphql set up
-const PersonModel = mongoose.model('person', {
+// Is the code below the mongoose schema or do I still have to build a model for this
+const UserModel = mongoose.model('user', {
   firstname: String,
   lastname: String,
   profile: String,
   social: String
 });
 
-const PersonType = new GraphQLObjectType({
-  name: 'Person',
-  fields: {
+const RootQueryType = new GraphQLObjectType({
+  name: 'Query',
+  description: 'This document represents the user and all the information we have for them',
+  fields: () => ({
     id: { type: GraphQLID },
-    firstname: { type: GraphQLString },
-    lastname: { type: GraphQLString },
-    profile: { type: GraphQLString },
-    social: { type: GraphQLString }
-
-  }
-});
-
-const schema = new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: 'Query',
-    fields: {
-      people: {
-        type: GraphQLList(PersonType),
-        resolve: (root, args, context, info) => PersonModel.find().exec()
-      },
-      person: {
-        type: PersonType,
-        args: {
-          id: { type: GraphQLNonNull(GraphQLID) }
-        },
-        resolve: (root, args, context, info) => PersonModel.findById(args.id).exec()
+    profile: {
+      firstname: { type: GraphQLString },
+      lastname: { type: GraphQLString },
+      email: { type: String },
+      title: String,
+      avatar: String,
+      backgroundImage: String,
+      description: String,
+      profession: String,
+      genre: String,
+      keywords: { type: GraphQLList },
+      address: String,
+      city: String,
+      extraInfo: String,
+      hyperlinks: [String],
+      facebookLink: String,
+      instagramLink: String,
+      youtubeLink: String,
+      label: String,
+      header: String,
+      grid: String,
+      post: String
+    },
+    site: {
+      name: {
+        type: String, unique: true, sparse: true, trim: true, lowercase: true
       }
+    },
+    google: {
+      id: String,
+      token: String,
+      refreshToken: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
+    },
+    facebook: {
+      id: String,
+      token: String,
+      longLivedToken: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
+    },
+    instagram: {
+      id: String,
+      token: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
     }
-  }),
-  mutation: new GraphQLObjectType({
-    name: 'Mutation',
-    fields: {
-      person: {
-        type: PersonType,
-        args: {
-          firstname: { type: GraphQLNonNull(GraphQLString) },
-          lastname: { type: GraphQLNonNull(GraphQLString) },
-          profile: { type: GraphQLNonNull(GraphQLString) },
-          social: { type: GraphQLNonNull(GraphQLString) }
 
-        },
-        resolve: (root, args, context, info) => {
-          const person = new PersonModel(args);
-          return person.save();
-        }
-      }
-    }
+
   })
 });
+const RootMutationType = new GraphQLObjectType({
+  name: 'Mutation',
+  description: 'This document represents the user and all the information we have for them',
+  fields: () => ({
+    // This is not complete each item needs to be able to have a source of info from front end
+    id: { type: GraphQLID },
+    profile: {
+      firstname: { type: GraphQLString },
+      lastname: { type: GraphQLString },
+      email: { type: String },
+      title: String,
+      avatar: String,
+      backgroundImage: String,
+      description: String,
+      profession: String,
+      genre: String,
+      keywords: { type: GraphQLList },
+      address: String,
+      city: String,
+      extraInfo: String,
+      hyperlinks: [String],
+      facebookLink: String,
+      instagramLink: String,
+      youtubeLink: String,
+      label: String,
+      header: String,
+      grid: String,
+      post: String
+    },
+    site: {
+      name: {
+        type: String, unique: true, sparse: true, trim: true, lowercase: true
+      }
+    },
+    google: {
+      id: String,
+      token: String,
+      refreshToken: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
+    },
+    facebook: {
+      id: String,
+      token: String,
+      longLivedToken: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
+    },
+    instagram: {
+      id: String,
+      token: String,
+      username: String,
+      name: String,
+      sync: Boolean,
+      created: Date,
+      rawData: Object
+    }
 
+
+  })
+});
+// OLD CODE FROM GRAPHQL tutorial the fisrt short one remove once working
+// const schema = new GraphQLSchema({
+//   query: new GraphQLObjectType({
+//     name: 'Query',
+//     fields: {
+//       users: {
+//         type: GraphQLList(UserType),
+//         resolve: (root, args, context, info) => UserModel.find().exec()
+//       },
+//       user: {
+//         type: UserType,
+//         firstname: String,
+//         lastname: String,
+//         args: {
+//           id: { type: GraphQLNonNull(GraphQLID) }
+//         },
+//         resolve: (root, args, context, info) => UserModel.findById(args.id).exec()
+//       }
+//     }
+//   }),
+//   mutation: new GraphQLObjectType({
+//     name: 'Mutation',
+//     fields: {
+//       user: {
+//         type: UserType,
+//         args: {
+//           firstname: { type: GraphQLNonNull(GraphQLString) },
+//           lastname: { type: GraphQLNonNull(GraphQLString) },
+//           profile: { type: GraphQLNonNull(GraphQLString) },
+//           social: { type: GraphQLNonNull(GraphQLString) }
+
+//         },
+//         resolve: (root, args, context, info) => {
+//           const user = new UserModel(args);
+//           return user.save();
+//         }
+//       }
+//     }
+//   })
+// });
+
+// This defines the general types for query and mutation
+const schema = new GraphQLSchema({
+  query: RootQueryType,
+  mutation: RootMutationType
+});
 
 app.use(
   '/graphql',

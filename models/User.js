@@ -11,11 +11,8 @@ const userSchema = new mongoose.Schema({
   emailVerified: Boolean,
 
   snapchat: String,
-  facebook: String,
   twitter: String,
-  google: String,
   github: String,
-  instagram: String,
   linkedin: String,
   steam: String,
   twitch: String,
@@ -23,11 +20,61 @@ const userSchema = new mongoose.Schema({
   tokens: Array,
 
   profile: {
+    firstName: { type: String },
+    lastName: { type: String },
+    email: { type: String },
+    title: String,
+    avatar: String,
+    backgroundImage: String,
+    description: String,
+    profession: String,
+    genre: String,
+    keywords: [String],
+    address: String,
+    city: String,
+    extraInfo: String,
+    hyperlinks: [String],
+    facebookLink: String,
+    instagramLink: String,
+    youtubeLink: String,
+    label: String,
+    header: String,
+    grid: String,
+    post: String
+  },
+  site: {
+    name: {
+      type: String, unique: true, sparse: true, trim: true, lowercase: true
+    }
+  },
+  google: {
+    id: String,
+    token: String,
+    refreshToken: String,
+    username: String,
     name: String,
-    gender: String,
-    location: String,
-    website: String,
-    picture: String
+    sync: Boolean,
+    created: Date,
+    rawData: Object
+  },
+  facebook: {
+    id: String,
+    token: String,
+    longLivedToken: String,
+    username: String,
+    name: String,
+    sync: Boolean,
+    created: Date,
+    rawData: Object
+  },
+  instagram: {
+    id: String,
+    token: String,
+    username: String,
+    name: String,
+    sync: Boolean,
+    created: Date,
+    rawData: Object
   }
 }, { timestamps: true });
 
