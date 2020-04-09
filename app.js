@@ -27,7 +27,8 @@ const {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLSchema
+  GraphQLBoolean,
+  GraphQLSchema,
 } = require('graphql');
 
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
@@ -79,194 +80,156 @@ const UserModel = mongoose.model('user', {
   firstname: String,
   lastname: String,
   profile: String,
-  social: String
+  social: String,
 });
-
+// to do write resolvers for all of querys
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
-  description: 'This document represents the user and all the information we have for them',
+  description:
+    'This document represents the user and all the information we have for them',
   fields: () => ({
     id: { type: GraphQLID },
+    firstName: {
+      type: GraphQLString,
+    },
+    lastName: { type: GraphQLString },
     profile: {
       firstname: { type: GraphQLString },
       lastname: { type: GraphQLString },
-      email: { type: String },
-      title: String,
-      avatar: String,
-      backgroundImage: String,
-      description: String,
-      profession: String,
-      genre: String,
-      keywords: { type: GraphQLList },
-      address: String,
-      city: String,
-      extraInfo: String,
-      hyperlinks: [String],
-      facebookLink: String,
-      instagramLink: String,
-      youtubeLink: String,
-      label: String,
-      header: String,
-      grid: String,
-      post: String
+      email: { type: GraphQLString },
+      title: { type: GraphQLString },
+      avatar: { type: GraphQLString },
+      backgroundImage: { type: GraphQLString },
+      description: { type: GraphQLString },
+      profession: { type: GraphQLString },
+      genre: { type: GraphQLString },
+      keywords: { type: GraphQLString },
+      address: { type: GraphQLString },
+      city: { type: GraphQLString },
+      extraInfo: { type: GraphQLString },
+      hyperlinks: [GraphQLString],
+      facebookLink: { type: GraphQLString },
+      instagramLink: { type: GraphQLString },
+      youtubeLink: { type: GraphQLString },
+      label: { type: GraphQLString },
+      header: { type: GraphQLString },
+      grid: { type: GraphQLString },
+      post: { type: GraphQLString },
     },
-    site: {
-      name: {
-        type: String, unique: true, sparse: true, trim: true, lowercase: true
-      }
-    },
+    site: { GraphQLString },
     google: {
-      id: String,
-      token: String,
-      refreshToken: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: { type: GraphQLString },
+      token: { type: GraphQLString },
+      refreshToken: { type: GraphQLString },
+      username: { type: GraphQLString },
+      name: { type: GraphQLString },
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
+      rawData: GraphQLObjectType,
     },
     facebook: {
-      id: String,
-      token: String,
-      longLivedToken: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: { type: GraphQLString },
+      token: { type: GraphQLString },
+      longLivedToken: { type: GraphQLString },
+      username: { type: GraphQLString },
+      name: { type: GraphQLString },
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
+      rawData: GraphQLObjectType,
     },
     instagram: {
-      id: String,
-      token: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: { type: GraphQLString },
+      token: { type: GraphQLString },
+      username: { type: GraphQLString },
+      name: { type: GraphQLString },
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
-    }
-
-
-  })
+      rawData: GraphQLObjectType,
+    },
+  }),
 });
+
+// to do write resolvers for all of querys
+
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
-  description: 'This document represents the user and all the information we have for them',
+  description:
+    'This document represents the user and all the information we can change from the front end',
   fields: () => ({
-    // This is not complete each item needs to be able to have a source of info from front end
+    // This is not complete each item needs to be able to have a source of info from the db
     id: { type: GraphQLID },
     profile: {
       firstname: { type: GraphQLString },
       lastname: { type: GraphQLString },
-      email: { type: String },
-      title: String,
-      avatar: String,
-      backgroundImage: String,
-      description: String,
-      profession: String,
-      genre: String,
-      keywords: { type: GraphQLList },
-      address: String,
-      city: String,
-      extraInfo: String,
-      hyperlinks: [String],
-      facebookLink: String,
-      instagramLink: String,
-      youtubeLink: String,
-      label: String,
-      header: String,
-      grid: String,
-      post: String
+      email: { type: GraphQLString },
+      title: GraphQLString,
+      avatar: GraphQLString,
+      backgroundImage: GraphQLString,
+      description: GraphQLString,
+      profession: GraphQLString,
+      genre: GraphQLString,
+      keywords: GraphQLString,
+      address: GraphQLString,
+      city: GraphQLString,
+      extraInfo: GraphQLString,
+      hyperlinks: [GraphQLString],
+      facebookLink: GraphQLString,
+      instagramLink: GraphQLString,
+      youtubeLink: GraphQLString,
+      label: GraphQLString,
+      header: GraphQLString,
+      grid: GraphQLString,
+      post: GraphQLString,
     },
-    site: {
-      name: {
-        type: String, unique: true, sparse: true, trim: true, lowercase: true
-      }
-    },
+    site: GraphQLString,
     google: {
-      id: String,
-      token: String,
-      refreshToken: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: GraphQLString,
+      token: GraphQLString,
+      refreshToken: GraphQLString,
+      username: GraphQLString,
+      name: GraphQLString,
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
+      rawData: GraphQLObjectType,
     },
     facebook: {
-      id: String,
-      token: String,
-      longLivedToken: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: GraphQLString,
+      token: GraphQLString,
+      longLivedToken: GraphQLString,
+      username: GraphQLString,
+      name: GraphQLString,
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
+      rawData: Object,
     },
     instagram: {
-      id: String,
-      token: String,
-      username: String,
-      name: String,
-      sync: Boolean,
+      id: GraphQLString,
+      token: GraphQLString,
+      username: GraphQLString,
+      name: GraphQLString,
+      sync: GraphQLBoolean,
       created: Date,
-      rawData: Object
-    }
-
-
-  })
+      rawData: GraphQLObjectType,
+    },
+  }),
 });
-// OLD CODE FROM GRAPHQL tutorial the fisrt short one remove once working
-// const schema = new GraphQLSchema({
-//   query: new GraphQLObjectType({
-//     name: 'Query',
-//     fields: {
-//       users: {
-//         type: GraphQLList(UserType),
-//         resolve: (root, args, context, info) => UserModel.find().exec()
-//       },
-//       user: {
-//         type: UserType,
-//         firstname: String,
-//         lastname: String,
-//         args: {
-//           id: { type: GraphQLNonNull(GraphQLID) }
-//         },
-//         resolve: (root, args, context, info) => UserModel.findById(args.id).exec()
-//       }
-//     }
-//   }),
-//   mutation: new GraphQLObjectType({
-//     name: 'Mutation',
-//     fields: {
-//       user: {
-//         type: UserType,
-//         args: {
-//           firstname: { type: GraphQLNonNull(GraphQLString) },
-//           lastname: { type: GraphQLNonNull(GraphQLString) },
-//           profile: { type: GraphQLNonNull(GraphQLString) },
-//           social: { type: GraphQLNonNull(GraphQLString) }
 
-//         },
-//         resolve: (root, args, context, info) => {
-//           const user = new UserModel(args);
-//           return user.save();
-//         }
-//       }
-//     }
-//   })
-// });
 
 // This defines the general types for query and mutation
 const schema = new GraphQLSchema({
   query: RootQueryType,
-  mutation: RootMutationType
+  mutation: RootMutationType,
 });
 
 app.use(
   '/graphql',
   ExpressGraphQL({
     schema,
-    graphiql: true
+    rootValue: {
+      query: () => {},
+      mutation: (args) => {},
+    },
+    graphiql: true,
   })
 );
 
@@ -282,7 +245,7 @@ app.use(compression());
 app.use(
   sass({
     src: path.join(__dirname, 'public'),
-    dest: path.join(__dirname, 'public')
+    dest: path.join(__dirname, 'public'),
   })
 );
 app.use(logger('dev'));
@@ -296,8 +259,8 @@ app.use(
     cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
     store: new MongoStore({
       url: process.env.MONGODB_URI,
-      autoReconnect: true
-    })
+      autoReconnect: true,
+    }),
   })
 );
 app.use(passport.initialize());
@@ -343,25 +306,25 @@ app.use(
 app.use(
   '/js/lib',
   express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
   '/js/lib',
   express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
   '/js/lib',
   express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
   '/js/lib',
   express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
@@ -579,10 +542,10 @@ app.get(
       'profile',
       'email',
       'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/spreadsheets.readonly'
+      'https://www.googleapis.com/auth/spreadsheets.readonly',
     ],
     accessType: 'offline',
-    prompt: 'consent'
+    prompt: 'consent',
   })
 );
 app.get(
@@ -662,7 +625,7 @@ app.get(
   '/auth/quickbooks',
   passport.authorize('quickbooks', {
     scope: ['com.intuit.quickbooks.accounting'],
-    state: 'SOME STATE'
+    state: 'SOME STATE',
   })
 );
 app.get(
