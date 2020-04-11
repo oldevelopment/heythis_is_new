@@ -28,6 +28,7 @@ const {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLBoolean,
+  GraphQLInt,
   GraphQLSchema,
 } = require('graphql');
 
@@ -73,163 +74,216 @@ mongoose.connection.on('error', (err) => {
   );
   process.exit();
 });
+// data example to work swap me for db connection please
+// const users = mongodb;
 
-// Graphql set up
-// Is the code below the mongoose schema or do I still have to build a model for this
-const UserModel = mongoose.model('user', {
-  firstname: String,
-  lastname: String,
-  profile: String,
-  social: String,
+// data
+const authors = [
+  { id: 1, name: 'J.K. Rowling' },
+  { id: 2, name: 'J.R.R. Tolkien' },
+  { id: 3, name: 'Brent Weeks' },
+];
+const books = [
+  { id: 1, name: 'Harry potter and the Chamber of Secrets', authorId: 1 },
+  { id: 2, name: 'Harry potter and the Prisoner of Azkaban', authorId: 1 },
+  { id: 3, name: 'Harry potter and the Goblet of Fire', authorId: 1 },
+  { id: 4, name: 'The Fellowship of the ring', authorId: 2 },
+  { id: 5, name: 'The Two Towers', authorId: 2 },
+  { id: 6, name: 'The Return of the King', authorId: 2 },
+  { id: 7, name: 'The Way of the Shadows', authorId: 3 },
+  { id: 8, name: 'The Beyond the Shadows', authorId: 3 },
+];
+const portals = [
+  {
+    id: 1, name: 'rotterdam', type: 'city', portalId: 1
+  },
+  {
+    id: 2, name: 'amsterdam', type: 'city', portalId: 1
+  },
+  {
+    id: 3, name: 'Breda', type: 'city', portalId: 1
+  },
+  {
+    id: 4, name: 'Hip-hop', type: 'music', portalId: 2
+  },
+  {
+    id: 5, name: 'Movies', type: 'film', portalId: 2
+  },
+  {
+    id: 6, name: 'Creative', type: 'city', portalId: 2
+  },
+  {
+    id: 7, name: 'The Way of the Shadows', type: 'city', portalId: 3
+  },
+  {
+    id: 8, name: 'The Beyond the Shadows', type: 'city', portalId: 3
+  },
+];
+const users = [{
+  id: 1,
+  firstname: 'Stefan ',
+  lastname: 'Tester',
+  userId: 1,
+  email: 'test@tester.com',
+  title: 'Quest One Mc',
+  avatar: 'something in base 64 or a url',
+  backgroundImage: 'something in base 64 or a url',
+  description: 'DNB MC to the stars',
+  profession: 'Master Of Ceremonies',
+  genre: 'DNB',
+  keywords: 'hiphop, mc, dance , music ', // this should be a list
+  address: null,
+  city: 'Amsterdam',
+  extraInfo: null,
+  hyperlinks: {},
+  facebookLink: 'fb@q1mc',
+  instagramLink: 'q1mcinstaurl',
+  youtubeLink: 'Q1mcyoutubeurl',
+  label: 'Hospital Records',
+  header: 'string representing the keywords used to build the custom header',
+  grid: 'I honestly dont know what this is',
+  post: 'string representing where to find this users posts',
+  site: 'www.questonemc.com',
+}];
+
+
+const BookType = new GraphQLObjectType({
+  name: 'Book',
+  description: 'This represents a book wrtten by an author',
+  fields: () => ({
+    id: { type: GraphQLNonNull(GraphQLInt) },
+    name: { type: GraphQLNonNull(GraphQLString) },
+    authorId: { type: GraphQLNonNull(GraphQLInt) },
+    author: {
+      // eslint-disable-next-line no-use-before-define
+      type: UserType,
+      resolve: (book) => authors.find((author) => author.id === book.authorId)
+    }
+  })
 });
-// to do write resolvers for all of querys
+const UserType = new GraphQLObjectType({
+  name: 'User',
+  description: 'This represents a users information',
+  fields: () => ({
+    id: { type: GraphQLNonNull(GraphQLInt) },
+    firstname: { type: GraphQLNonNull(GraphQLString) },
+    lastname: { type: GraphQLNonNull(GraphQLString) },
+    email: { type: GraphQLNonNull(GraphQLString) },
+    title: { type: GraphQLNonNull(GraphQLString) },
+    avatar: { type: GraphQLString },
+    backgroundImage: { type: GraphQLString },
+    description: { type: GraphQLNonNull(GraphQLString) },
+    profession: { type: GraphQLNonNull(GraphQLString) },
+    genre: { type: GraphQLNonNull(GraphQLString) },
+    keywords: { type: GraphQLString }, // this should be a list
+    address: { type: GraphQLString },
+    city: { type: GraphQLNonNull(GraphQLString) },
+    extraInfo: { type: GraphQLString },
+    // hyperlinks: { type: GraphQLList },
+    facebookLink: { type: GraphQLNonNull(GraphQLString) },
+    instagramLink: { type: GraphQLNonNull(GraphQLString) },
+    youtubeLink: { type: GraphQLNonNull(GraphQLString) },
+    label: { type: GraphQLNonNull(GraphQLString) },
+    header: { type: GraphQLNonNull(GraphQLString) },
+    grid: { type: GraphQLNonNull(GraphQLString) },
+    post: { type: GraphQLNonNull(GraphQLString) },
+    userId: { type: GraphQLNonNull(GraphQLInt) },
+    site: { type: GraphQLString },
+    user: {
+      // eslint-disable-next-line no-use-before-define
+      type: UserType,
+      resolve: (user) => users.find((user) => user.id === user.userId)
+    }
+  })
+});
+
+const PortalType = new GraphQLObjectType({
+  name: 'Portal',
+  description: 'This represents a portal that has been created ',
+  fields: () => ({
+    id: { type: GraphQLNonNull(GraphQLInt) },
+    name: { type: GraphQLNonNull(GraphQLString) },
+    books: {
+      type: new GraphQLList(BookType),
+      resolve: (portal) => portals.filter((portal) => portal.portalId === portal.id)
+    }
+  })
+});
+
+
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
-  description:
-    'This document represents the user and all the information we have for them',
+  description: 'Root Query',
   fields: () => ({
-    id: { type: GraphQLID },
-    firstName: { type: GraphQLString, resolve: (user) => user.firstname },
-    lastName: { type: GraphQLString, resolve: (user) => user.lastname },
-    profile: {
-      firstname: { type: GraphQLString },
-      lastname: { type: GraphQLString },
-      email: { type: GraphQLString },
-      title: { type: GraphQLString },
-      avatar: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      description: { type: GraphQLString },
-      profession: { type: GraphQLString },
-      genre: { type: GraphQLString },
-      keywords: { type: GraphQLString },
-      address: { type: GraphQLString },
-      city: { type: GraphQLString },
-      extraInfo: { type: GraphQLString },
-      hyperlinks: [GraphQLString],
-      facebookLink: { type: GraphQLString },
-      instagramLink: { type: GraphQLString },
-      youtubeLink: { type: GraphQLString },
-      label: { type: GraphQLString },
-      header: { type: GraphQLString },
-      grid: { type: GraphQLString },
-      post: { type: GraphQLString },
+    user: {
+      type: UserType,
+      description: 'A single user',
+      args: {
+        id: { type: GraphQLInt }
+      },
+      resolve: (parent, args) => users.find((user) => user.id === args.id)
     },
-    site: { GraphQLString, resolve: (user) => user.site },
-    google: {
-      id: { type: GraphQLString },
-      token: { type: GraphQLString },
-      refreshToken: { type: GraphQLString },
-      username: { type: GraphQLString },
-      name: { type: GraphQLString },
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: GraphQLObjectType,
+    users: {
+      type: new GraphQLList(UserType),
+      description: 'List of all users',
+      resolve: () => users
     },
-    facebook: {
-      id: { type: GraphQLString },
-      token: { type: GraphQLString },
-      longLivedToken: { type: GraphQLString },
-      username: { type: GraphQLString },
-      name: { type: GraphQLString },
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: GraphQLObjectType,
-    },
-    instagram: {
-      id: { type: GraphQLString },
-      token: { type: GraphQLString },
-      username: { type: GraphQLString },
-      name: { type: GraphQLString },
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: GraphQLObjectType,
-    },
-  }),
+  })
 });
-
-// to do write resolvers for all of querys
-
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
-  description:
-    'This document represents the user and all the information we can change from the front end',
+  description: 'Root Mutation',
   fields: () => ({
-    // This is not complete each item needs to be able to have a source of info from the db
-    id: { type: GraphQLID },
-    profile: {
-      firstname: { type: GraphQLString },
-      lastname: { type: GraphQLString },
-      email: { type: GraphQLString },
-      title: GraphQLString,
-      avatar: GraphQLString,
-      backgroundImage: GraphQLString,
-      description: GraphQLString,
-      profession: GraphQLString,
-      genre: GraphQLString,
-      keywords: GraphQLString,
-      address: GraphQLString,
-      city: GraphQLString,
-      extraInfo: GraphQLString,
-      hyperlinks: [GraphQLString],
-      facebookLink: GraphQLString,
-      instagramLink: GraphQLString,
-      youtubeLink: GraphQLString,
-      label: GraphQLString,
-      header: GraphQLString,
-      grid: GraphQLString,
-      post: GraphQLString,
+    addUser: {
+      type: UserType,
+      description: 'Add a  user',
+      args: {
+        firstname: { type: GraphQLNonNull(GraphQLString) },
+        lastname: { type: GraphQLNonNull(GraphQLString) },
+        email: { type: GraphQLNonNull(GraphQLString) },
+        userId: { type: GraphQLNonNull(GraphQLInt) },
+      },
+      resolve: (parent, args) => {
+        const user = {
+          id: users.length + 1,
+          firstname: args.firstname,
+          lastname: args.lastname,
+          userId: args.userId
+        };
+        users.push(user);
+        return user;
+      }
+
     },
-    site: { GraphQLString, resolve: (user) => user.site },
-    google: {
-      id: GraphQLString,
-      token: GraphQLString,
-      refreshToken: GraphQLString,
-      username: GraphQLString,
-      name: GraphQLString,
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: GraphQLObjectType,
-    },
-    facebook: {
-      id: GraphQLString,
-      token: GraphQLString,
-      longLivedToken: GraphQLString,
-      username: GraphQLString,
-      name: GraphQLString,
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: Object,
-    },
-    instagram: {
-      id: GraphQLString,
-      token: GraphQLString,
-      username: GraphQLString,
-      name: GraphQLString,
-      sync: GraphQLBoolean,
-      created: Date,
-      rawData: GraphQLObjectType,
-    },
-  }),
+    addPortal: {
+      type: PortalType,
+      description: 'Add a  portal',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        type: { type: GraphQLNonNull(GraphQLString) },
+        portalId: { type: GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (parent, args) => {
+        const portal = { id: portals.length + 1, name: args.name, type: args.type };
+        portals.push(portal);
+        return portal;
+      }
+
+    }
+  })
 });
 
 
-// This defines the general types for query and mutation
 const schema = new GraphQLSchema({
   query: RootQueryType,
-  mutation: RootMutationType,
+  mutation: RootMutationType
 });
+app.use('/graphql', ExpressGraphQL({
+  schema,
+  graphiql: true
+}));
 
-app.use(
-  '/graphql',
-  ExpressGraphQL({
-    schema,
-    // rootValue: {
-    //   query: () => {},
-    //   mutation: (args) => {},
-    // },
-    graphiql: true,
-  })
-);
+// ----------------------Express config to be adjusted after graphql works------------------------//
 
 /**
  * Express configuration.

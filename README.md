@@ -1555,4 +1555,5 @@ Backend dev changelog
 25th of march 2020 moving to apply grapql to the project.
 27th of march all 3 logins are now working ( using my personal credtials which points to a larger problem in the way alviono has configured the app)
 7th April added last commits to graphqwl and read in front in dev
-
+11th April added user profile to the grapql schema
+![](./graphqluser-profile.png)
