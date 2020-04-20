@@ -21,6 +21,7 @@ const passport = require('passport');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
+
 const {
   GraphQLID,
   GraphQLString,
@@ -75,8 +76,8 @@ mongoose.connection.on('error', (err) => {
   process.exit();
 });
 // data example to work swap me for db connection please
+// const db = require('./data');
 // const users = mongodb;
-
 // data
 const authors = [
   { id: 1, name: 'J.K. Rowling' },
@@ -93,59 +94,103 @@ const books = [
   { id: 7, name: 'The Way of the Shadows', authorId: 3 },
   { id: 8, name: 'The Beyond the Shadows', authorId: 3 },
 ];
-const portals = [
+const users = [
   {
-    id: 1, name: 'rotterdam', type: 'city', portalId: 1
+    id: 1,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
   {
-    id: 2, name: 'amsterdam', type: 'city', portalId: 1
+    id: 2,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
   {
-    id: 3, name: 'Breda', type: 'city', portalId: 1
+    id: 3,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
   {
-    id: 4, name: 'Hip-hop', type: 'music', portalId: 2
+    id: 4,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
   {
-    id: 5, name: 'Movies', type: 'film', portalId: 2
+    id: 5,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
   {
-    id: 6, name: 'Creative', type: 'city', portalId: 2
-  },
-  {
-    id: 7, name: 'The Way of the Shadows', type: 'city', portalId: 3
-  },
-  {
-    id: 8, name: 'The Beyond the Shadows', type: 'city', portalId: 3
+    id: 6,
+    accountInfo: 'to be an object later',
+    userInfo: 'to be an object later',
+    pageRules: 'to be an object later',
+    pageContent: 'to be an object later',
+    hyperlinks: 'to be an object later',
+    pageBuilder: 'to be an object later',
+    portals: 'to be an object later',
+    socialmedia: 'to be an object later',
   },
 ];
-const users = [{
-  id: 1,
-  firstname: 'Stefan ',
-  lastname: 'Tester',
-  userId: 1,
-  email: 'test@tester.com',
-  title: 'Quest One Mc',
-  avatar: 'something in base 64 or a url',
-  backgroundImage: 'something in base 64 or a url',
-  description: 'DNB MC to the stars',
-  profession: 'Master Of Ceremonies',
-  genre: 'DNB',
-  keywords: 'hiphop, mc, dance , music ', // this should be a list
-  address: null,
-  city: 'Amsterdam',
-  extraInfo: null,
-  hyperlinks: {},
-  facebookLink: 'fb@q1mc',
-  instagramLink: 'q1mcinstaurl',
-  youtubeLink: 'Q1mcyoutubeurl',
-  label: 'Hospital Records',
-  header: 'string representing the keywords used to build the custom header',
-  grid: 'I honestly dont know what this is',
-  post: 'string representing where to find this users posts',
-  site: 'www.questonemc.com',
-}];
+const userinfotype = [
+  {
+    id: 1,
+    companyname: 'proactief',
+    firstname: 'stefan',
+    lastname: 'quest',
+    address: '525 timbukturoad',
+    pobox: '1304 asialand',
+    city: 'Honkercity',
+    country: 'China',
+    telephone: '0123456789',
+    email: 'stefan@test.com',
+    ww: 'stefanquest.com',
+    oauth: true,
+    referral: false,
+  },
+];
 
+// const schema = new GraphQLSchema({
+//     query : new GraphQLObjectType({
+//         name: 'Helloworld',
+//         fields:()=>({
+//             message: {
+//                 type: GraphQLString,
+//                 resolve: ()=> 'Hello world'
+//             }
+//         })
+//     })
+// })
 
 const BookType = new GraphQLObjectType({
   name: 'Book',
@@ -156,132 +201,209 @@ const BookType = new GraphQLObjectType({
     authorId: { type: GraphQLNonNull(GraphQLInt) },
     author: {
       // eslint-disable-next-line no-use-before-define
-      type: UserType,
-      resolve: (book) => authors.find((author) => author.id === book.authorId)
-    }
-  })
-});
-const UserType = new GraphQLObjectType({
-  name: 'User',
-  description: 'This represents a users information',
-  fields: () => ({
-    id: { type: GraphQLNonNull(GraphQLInt) },
-    firstname: { type: GraphQLNonNull(GraphQLString) },
-    lastname: { type: GraphQLNonNull(GraphQLString) },
-    email: { type: GraphQLNonNull(GraphQLString) },
-    title: { type: GraphQLNonNull(GraphQLString) },
-    avatar: { type: GraphQLString },
-    backgroundImage: { type: GraphQLString },
-    description: { type: GraphQLNonNull(GraphQLString) },
-    profession: { type: GraphQLNonNull(GraphQLString) },
-    genre: { type: GraphQLNonNull(GraphQLString) },
-    keywords: { type: GraphQLString }, // this should be a list
-    address: { type: GraphQLString },
-    city: { type: GraphQLNonNull(GraphQLString) },
-    extraInfo: { type: GraphQLString },
-    // hyperlinks: { type: GraphQLList },
-    facebookLink: { type: GraphQLNonNull(GraphQLString) },
-    instagramLink: { type: GraphQLNonNull(GraphQLString) },
-    youtubeLink: { type: GraphQLNonNull(GraphQLString) },
-    label: { type: GraphQLNonNull(GraphQLString) },
-    header: { type: GraphQLNonNull(GraphQLString) },
-    grid: { type: GraphQLNonNull(GraphQLString) },
-    post: { type: GraphQLNonNull(GraphQLString) },
-    userId: { type: GraphQLNonNull(GraphQLInt) },
-    site: { type: GraphQLString },
-    user: {
-      // eslint-disable-next-line no-use-before-define
-      type: UserType,
-      resolve: (user) => users.find((user) => user.id === user.userId)
-    }
-  })
+      type: AuthorType,
+      resolve: (book) => authors.find((author) => author.id === book.authorId),
+    },
+  }),
 });
 
-const PortalType = new GraphQLObjectType({
-  name: 'Portal',
-  description: 'This represents a portal that has been created ',
+const AuthorType = new GraphQLObjectType({
+  name: 'Author',
+  description: 'This represents an  author that wrote a book',
   fields: () => ({
     id: { type: GraphQLNonNull(GraphQLInt) },
     name: { type: GraphQLNonNull(GraphQLString) },
     books: {
       type: new GraphQLList(BookType),
-      resolve: (portal) => portals.filter((portal) => portal.portalId === portal.id)
-    }
-  })
+      resolve: (author) => books.filter((book) => book.authorId === author.id),
+    },
+  }),
+});
+const UserType = new GraphQLObjectType({
+  name: 'User',
+  description: 'This represents all the info we have on a user',
+  fields: () => ({
+    id: { type: GraphQLNonNull(GraphQLInt) },
+    accountInfo: { type: GraphQLNonNull(GraphQLString) },
+    accounttype: { type: GraphQLNonNull(GraphQLString) },
+    creationdate: { type: GraphQLNonNull(GraphQLString) },
+    accountstatus: { type: GraphQLNonNull(GraphQLBoolean) },
+    companyname: { type: GraphQLString },
+    firstname: { type: GraphQLNonNull(GraphQLString) },
+    lastname: { type: GraphQLNonNull(GraphQLString) },
+    address: { type: GraphQLString },
+    pobox: { type: GraphQLString },
+    telephone: { type: GraphQLString },
+    wachtwoord: { type: GraphQLNonNull(GraphQLString) },
+    city: { type: GraphQLString },
+    country: { type: GraphQLString },
+    email: { type: GraphQLNonNull(GraphQLString) },
+    // userInfo: { type: GraphQLNonNull(GraphQLString) },
+    profilepic: { type: GraphQLString },
+    pageRules: { type: GraphQLString },
+    pageContent: { type: GraphQLString },
+    hyperlinks: { type: GraphQLString }, // fb,youtube,insta
+    pageBuilder: { type: GraphQLNonNull(GraphQLString) },
+    portals: { type: GraphQLString },
+    socialmedia: { type: GraphQLNonNull(GraphQLString) },
+    oauth: { type: GraphQLBoolean },
+    referral: { type: GraphQLNonNull(GraphQLString) },
+    users: {
+      type: new GraphQLList(UserType),
+      resolve: (user) => users.filter((user) => user.userId === user.id),
+    },
+  }),
 });
 
-
+// instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
   description: 'Root Query',
   fields: () => ({
+    book: {
+      type: BookType,
+      description: 'A single books',
+      args: {
+        id: { type: GraphQLInt },
+      },
+      resolve: (parent, args) => books.find((book) => book.id === args.id),
+    },
+    books: {
+      type: new GraphQLList(BookType),
+      description: 'List of all books',
+      resolve: () => books,
+    },
+    users: {
+      type: new GraphQLList(UserType),
+      description: 'List of all user',
+      resolve: () => users,
+    },
     user: {
       type: UserType,
       description: 'A single user',
       args: {
-        id: { type: GraphQLInt }
+        id: { type: GraphQLInt },
       },
-      resolve: (parent, args) => users.find((user) => user.id === args.id)
+      resolve: (parent, args) => users.find((user) => user.id === args.id),
     },
-    users: {
-      type: new GraphQLList(UserType),
-      description: 'List of all users',
-      resolve: () => users
+    authors: {
+      type: new GraphQLList(AuthorType),
+      description: 'List of all authours',
+      resolve: () => authors,
     },
-  })
+    author: {
+      type: AuthorType,
+      description: 'A single authour',
+      args: {
+        id: { type: GraphQLInt },
+      },
+      resolve: (parent, args) =>
+        authors.find((author) => author.id === args.id),
+    },
+  }),
 });
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   description: 'Root Mutation',
   fields: () => ({
+    addBook: {
+      type: BookType,
+      description: 'Add a  book',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        authorId: { type: GraphQLNonNull(GraphQLInt) },
+      },
+      resolve: (parent, args) => {
+        const book = {
+          id: books.length + 1,
+          name: args.name,
+          authorId: args.authorId,
+        };
+        books.push(book);
+        return book;
+      },
+    },
+    addAuthor: {
+      type: AuthorType,
+      description: 'Add a  Author',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (parent, args) => {
+        const author = { id: authors.length + 1, name: args.name };
+        authors.push(author);
+        return author;
+      },
+    },
     addUser: {
       type: UserType,
-      description: 'Add a  user',
+      description: 'Add a  User',
       args: {
         firstname: { type: GraphQLNonNull(GraphQLString) },
-        lastname: { type: GraphQLNonNull(GraphQLString) },
+        lasttname: { type: GraphQLNonNull(GraphQLString) },
         email: { type: GraphQLNonNull(GraphQLString) },
-        userId: { type: GraphQLNonNull(GraphQLInt) },
+        wachtwoord: { type: GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (parent, args) => {
+        const user = { id: users.length + 1, name: args.name };
+        users.push(user);
+        return user;
+      },
+    },
+    updateUser: {
+      type: UserType,
+      description: 'Update a  User',
+      args: {
+        wachtwoord: { type: GraphQLString },
+        companyname: { type: GraphQLString },
+        address: { type: GraphQLString },
+        pobox: { type: GraphQLString },
+        city: { type: GraphQLString },
+        country: { type: GraphQLString },
+        telephone: { type: GraphQLString },
+        ww: { type: GraphQLString },
+        oauth: { type: GraphQLNonNull(GraphQLBoolean) },
+        referral: { type: GraphQLNonNull(GraphQLBoolean) },
       },
       resolve: (parent, args) => {
         const user = {
+          /* this method is not correct it's just a filler
+          correct method should find the user and replace the
+          details with those of args */
           id: users.length + 1,
           firstname: args.firstname,
           lastname: args.lastname,
-          userId: args.userId
+          email: args.email,
+          wachtwoord: args.wachtwoord,
+          companyname: args.companyname,
+          profilepic: args.profilepic,
+          address: args.address,
+          pobox: args.pobox,
+          city: args.city,
+          country: args.country,
+          telephone: args.country,
+          ww: args.ww,
+          oauth: args.oauth,
+          referral: { type: args.referral },
         };
         users.push(user);
         return user;
-      }
-
-    },
-    addPortal: {
-      type: PortalType,
-      description: 'Add a  portal',
-      args: {
-        name: { type: GraphQLNonNull(GraphQLString) },
-        type: { type: GraphQLNonNull(GraphQLString) },
-        portalId: { type: GraphQLNonNull(GraphQLString) },
       },
-      resolve: (parent, args) => {
-        const portal = { id: portals.length + 1, name: args.name, type: args.type };
-        portals.push(portal);
-        return portal;
-      }
-
-    }
-  })
+    },
+  }),
 });
-
 
 const schema = new GraphQLSchema({
   query: RootQueryType,
-  mutation: RootMutationType
+  mutation: RootMutationType,
 });
-app.use('/graphql', ExpressGraphQL({
-  schema,
-  graphiql: true
-}));
+app.use(
+  '/graphql',
+  ExpressGraphQL({
+    schema,
+    graphiql: true,
+  })
+);
 
 // ----------------------Express config to be adjusted after graphql works------------------------//
 
