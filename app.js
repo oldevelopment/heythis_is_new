@@ -249,7 +249,7 @@ const UserType = new GraphQLObjectType({
     pageRules: { type: GraphQLString },
     pageContent: { type: GraphQLString },
     hyperlinks: { type: GraphQLString }, // fb,youtube,insta
-    pageBuilder: { type: GraphQLNonNull(GraphQLString) },
+    pageBuilder: { type: GraphQLString },
     portals: { type: GraphQLString },
     socialmedia: { type: GraphQLNonNull(GraphQLString) },
     oauth: { type: GraphQLBoolean },
@@ -313,6 +313,7 @@ const RootMutationType = new GraphQLObjectType({
   description: 'Root Mutation',
   fields: () => ({
     addBook: {
+      // remove this method
       type: BookType,
       description: 'Add a  book',
       args: {
@@ -330,6 +331,7 @@ const RootMutationType = new GraphQLObjectType({
       },
     },
     addAuthor: {
+      // remove this method
       type: AuthorType,
       description: 'Add a  Author',
       args: {
@@ -379,7 +381,7 @@ const RootMutationType = new GraphQLObjectType({
         pageRules: { type: GraphQLString },
         pageContent: { type: GraphQLString },
         hyperlinks: { type: GraphQLString }, // fb,youtube,insta
-        pageBuilder: { type: GraphQLNonNull(GraphQLString) },
+        pageBuilder: { type: GraphQLString },
         portals: { type: GraphQLString },
         socialmedia: { type: GraphQLString },
         oauth: { type: GraphQLNonNull(GraphQLBoolean) },
