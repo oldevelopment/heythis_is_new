@@ -240,6 +240,12 @@ const UserType = new GraphQLObjectType({
     email: { type: GraphQLNonNull(GraphQLString) },
     // userInfo: { type: GraphQLNonNull(GraphQLString) },
     profilepic: { type: GraphQLString },
+    pagetitle: { type: GraphQLString },
+    pitch: { type: GraphQLString },
+    backgroundimage: { type: GraphQLString },
+    keywords: { type: GraphQLString },
+    profession: { type: GraphQLString },
+    genre: { type: GraphQLString },
     pageRules: { type: GraphQLString },
     pageContent: { type: GraphQLString },
     hyperlinks: { type: GraphQLString }, // fb,youtube,insta
