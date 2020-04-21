@@ -94,6 +94,16 @@ mongoose.connection.on('error', (err) => {
 //   { id: 7, name: 'The Way of the Shadows', authorId: 3 },
 //   { id: 8, name: 'The Beyond the Shadows', authorId: 3 },
 // ];
+const portals = [
+  { id: 1, name: 'Harry potter and the Chamber of Secrets', authorId: 1 },
+  { id: 2, name: 'Harry potter and the Prisoner of Azkaban', authorId: 1 },
+  { id: 3, name: 'Harry potter and the Goblet of Fire', authorId: 1 },
+  { id: 4, name: 'The Fellowship of the ring', authorId: 2 },
+  { id: 5, name: 'The Two Towers', authorId: 2 },
+  { id: 6, name: 'The Return of the King', authorId: 2 },
+  { id: 7, name: 'The Way of the Shadows', authorId: 3 },
+  { id: 8, name: 'The Beyond the Shadows', authorId: 3 },
+];
 const users = [
   {
     id: 1,
@@ -207,18 +217,7 @@ const userinfotype = [
 //   }),
 // });
 
-// const AuthorType = new GraphQLObjectType({
-//   name: 'Author',
-//   description: 'This represents an  author that wrote a book',
-//   fields: () => ({
-//     id: { type: GraphQLNonNull(GraphQLInt) },
-//     name: { type: GraphQLNonNull(GraphQLString) },
-//     books: {
-//       type: new GraphQLList(BookType),
-//       resolve: (author) => books.filter((book) => book.authorId === author.id),
-//     },
-//   }),
-// });
+
 const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'This represents all the info we have on a user',
@@ -260,6 +259,19 @@ const UserType = new GraphQLObjectType({
     },
   }),
 });
+const PortalType = new GraphQLObjectType({
+  name: 'Portal',
+  description: 'This represents a Portal',
+  fields: () => ({
+    id: { type: GraphQLNonNull(GraphQLInt) },
+    name: { type: GraphQLNonNull(GraphQLString) },
+    type: { type: GraphQLNonNull(GraphQLString) }, // place, genre,profession etc.
+    users: {
+      type: new GraphQLList(UserType),
+      resolve: (user) => users.filter((user) => user.userId === user.id),
+    },
+  }),
+});
 
 // instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({
@@ -274,11 +286,24 @@ const RootQueryType = new GraphQLObjectType({
     //   },
     //   resolve: (parent, args) => books.find((book) => book.id === args.id),
     // },
+    portal: {
+      type: PortalType,
+      description: 'A single portal',
+      args: {
+        id: { type: GraphQLInt },
+      },
+      resolve: (parent, args) => portals.find((portal) => portal.id === args.id),
+    },
     // books: {
     //   type: new GraphQLList(BookType),
     //   description: 'List of all books',
     //   resolve: () => books,
     // },
+    portals: {
+      type: new GraphQLList(PortalType),
+      description: 'List of all portals',
+      resolve: () => portals,
+    },
     users: {
       type: new GraphQLList(UserType),
       description: 'List of all user',
@@ -319,6 +344,8 @@ const RootMutationType = new GraphQLObjectType({
     //   args: {
     //     name: { type: GraphQLNonNull(GraphQLString) },
     //     authorId: { type: GraphQLNonNull(GraphQLInt) },
+    //     name: { type: GraphQLNonNull(GraphQLString) },
+    //     type: { type: GraphQLNonNull(GraphQLString) },
     //   },
     //   resolve: (parent, args) => {
     //     const book = {
@@ -424,7 +451,26 @@ const RootMutationType = new GraphQLObjectType({
         return user;
       },
     },
+    createPortal: {
+      type: PortalType,
+      description: 'Add a  portal',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        type: { type: GraphQLNonNull(GraphQLString) },
+
+      },
+      resolve: (parent, args) => {
+        const portal = {
+          id: portals.length + 1,
+          name: args.name,
+          authorId: args.authorId,
+        };
+        portals.push(portal);
+        return portal;
+      },
+    },
   }),
+
 });
 
 const schema = new GraphQLSchema({

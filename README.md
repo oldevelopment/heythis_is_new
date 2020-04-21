@@ -1557,3 +1557,23 @@ Backend dev changelog
 7th April added last commits to graphqwl and read in front in dev
 11th April added user profile to the grapql schema
 ![](./graphqluser-profile.png)
+
+21st April Graphql pretty much done . waiting for feedback and more possible points to expose from front end dev
+21st April checked client ID's and app secrets again 
+  facebook not working 
+  it will get you to log in but the next bit is not working 
+  instagram not working when you try to go further with the login screen you get 
+  {
+error_type: "OAuthException",
+code: 400,
+error_message: "Invalid scope field(s): public_content"
+}
+Google log  also give an error when going past the sign in 
+This app isn't verified
+This app hasn't been verified by Google yet. Only proceed if you know and trust the developer.
+
+If you’re the developer, submit a verification request to remove this screen. Learn more
+
+Advanced
+to be reserached and resolved immediately.
+21st to do persist data to localhost/mongodb. and test 
