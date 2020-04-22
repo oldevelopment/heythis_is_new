@@ -1560,7 +1560,7 @@ Backend dev changelog
 
 21st April Graphql pretty much done . waiting for feedback and more possible points to expose from front end dev
 21st April checked client ID's and app secrets again 
-  facebook not working 
+  facebook working we need to do some more configuring on our end.
   it will get you to log in but the next bit is not working 
   instagram not working when you try to go further with the login screen you get 
   {
@@ -1568,6 +1568,7 @@ error_type: "OAuthException",
 code: 400,
 error_message: "Invalid scope field(s): public_content"
 }
+SUGGEST STEFAN DOES A PERSONAL ON TO TEST AND IF YOU GET DIFFERENT RESULTS THEN CREATE A NEW ONE FOR THE MAIN APP
 Google log  also give an error when going past the sign in 
 This app isn't verified
 This app hasn't been verified by Google yet. Only proceed if you know and trust the developer.
