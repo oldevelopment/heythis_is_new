@@ -22,6 +22,7 @@ const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
 
+
 const {
   GraphQLID,
   GraphQLString,
@@ -40,7 +41,11 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
  */
 dotenv.config({ path: '.env.example' });
 // load mongoose model
+// const Db = require('./models/User');
 const User = require('./models/User');
+const Portal = require('./models/Portal');
+
+// const User = require('./models/user-repo.model');
 /**
  * Controllers (route handlers).
  */
@@ -78,113 +83,17 @@ mongoose.connection.on('error', (err) => {
 // data example to work swap me for db connection please
 // const db = require('./data');
 // const users = mongodb;
-// data
 
-const portals = [
-  { id: 1, name: 'Harry potter and the Chamber of Secrets', authorId: 1 },
-  { id: 2, name: 'Harry potter and the Prisoner of Azkaban', authorId: 1 },
-  { id: 3, name: 'Harry potter and the Goblet of Fire', authorId: 1 },
-  { id: 4, name: 'The Fellowship of the ring', authorId: 2 },
-  { id: 5, name: 'The Two Towers', authorId: 2 },
-  { id: 6, name: 'The Return of the King', authorId: 2 },
-  { id: 7, name: 'The Way of the Shadows', authorId: 3 },
-  { id: 8, name: 'The Beyond the Shadows', authorId: 3 },
-];
-const users = [
-  {
-    id: 1,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-  {
-    id: 2,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-  {
-    id: 3,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-  {
-    id: 4,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-  {
-    id: 5,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-  {
-    id: 6,
-    accountInfo: 'to be an object later',
-    userInfo: 'to be an object later',
-    pageRules: 'to be an object later',
-    pageContent: 'to be an object later',
-    hyperlinks: 'to be an object later',
-    pageBuilder: 'to be an object later',
-    portals: 'to be an object later',
-    socialmedia: 'to be an object later',
-  },
-];
-const userinfotype = [
-  {
-    id: 1,
-    companyname: 'proactief',
-    firstname: 'stefan',
-    lastname: 'quest',
-    address: '525 timbukturoad',
-    pobox: '1304 asialand',
-    city: 'Honkercity',
-    country: 'China',
-    telephone: '0123456789',
-    email: 'stefan@test.com',
-    ww: 'stefanquest.com',
-    oauth: true,
-    referral: false,
-  },
-];
 
 const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'This represents all the info we have on a user',
   fields: () => ({
-    id: { type: GraphQLNonNull(GraphQLInt) },
-    firstname: { type: GraphQLNonNull(GraphQLString) },
-    lastname: { type: GraphQLNonNull(GraphQLString) },
+    id: { type: GraphQLID },
+    firstname: { type: GraphQLString },
+    lastname: { type: GraphQLString },
     creationdate: { type: GraphQLNonNull(GraphQLString) },
-    email: { type: GraphQLNonNull(GraphQLString) },
+    email: { type: GraphQLString },
     title: { type: GraphQLNonNull(GraphQLString) },
     avatar: { type: GraphQLString },
     profilepic: { type: GraphQLString },
@@ -205,7 +114,7 @@ const UserType = new GraphQLObjectType({
     address: { type: GraphQLString },
     pobox: { type: GraphQLString },
     telephone: { type: GraphQLString },
-    wachtwoord: { type: GraphQLNonNull(GraphQLString) },
+    wachtwoord: { type: GraphQLString },
     city: { type: GraphQLString },
     country: { type: GraphQLString },
     pagetitle: { type: GraphQLString },
@@ -215,7 +124,7 @@ const UserType = new GraphQLObjectType({
     referral: { type: GraphQLNonNull(GraphQLString) },
     users: {
       type: new GraphQLList(UserType),
-      resolve: (user) => users.filter((user) => user.userId === user.id),
+      resolve: (user) => User.users.filter((user) => user.userId === user.id),
     },
   }),
 });
@@ -223,12 +132,18 @@ const PortalType = new GraphQLObjectType({
   name: 'Portal',
   description: 'This represents a Portal',
   fields: () => ({
-    id: { type: GraphQLNonNull(GraphQLInt) },
-    name: { type: GraphQLNonNull(GraphQLString) },
-    type: { type: GraphQLNonNull(GraphQLString) }, // place, genre,profession etc.
-    users: {
+    id: { type: GraphQLNonNull(GraphQLID) },
+    info: { type: GraphQLString },
+    layout: { type: GraphQLString },
+    pages: { type: GraphQLString },
+    footer: { type: GraphQLString },
+    title: { type: GraphQLString },
+    description: { type: GraphQLString },
+    name: { type: GraphQLString },
+    type: { type: GraphQLString }, // place, genre,profession etc.
+    portals: {
       type: new GraphQLList(UserType),
-      resolve: (user) => users.filter((user) => user.userId === user.id),
+      resolve: (portal) => Portal.portals.filter((portal) => portal.portalId === portal.id),
     },
   }),
 });
@@ -242,27 +157,39 @@ const RootQueryType = new GraphQLObjectType({
       type: PortalType,
       description: 'A single portal',
       args: {
-        id: { type: GraphQLInt },
+        id: { type: GraphQLID },
       },
-      resolve: (parent, args) => portals.find((portal) => portal.id === args.id),
+      resolve: (parent, args) => Portal.findOne({ _id: args.id }, (err, docs) => {
+        // docs.forEach
+        console.log(err, docs);
+      })
     },
     portals: {
       type: new GraphQLList(PortalType),
       description: 'List of all portals',
-      resolve: () => portals,
+      resolve: () => Portal.find({}, (err, docs) => {
+        // docs.forEach
+        console.log(err, docs);
+      })
     },
     users: {
       type: new GraphQLList(UserType),
       description: 'List of all user',
-      resolve: () => users,
+      resolve: () => User.find({}, (err, docs) => {
+        // docs.forEach
+        console.log(err, docs);
+      })
     },
     user: {
       type: UserType,
       description: 'A single user',
       args: {
-        id: { type: GraphQLInt },
+        id: { type: GraphQLID },
       },
-      resolve: (parent, args) => users.find((user) => user.id === args.id),
+      resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
+        // docs.forEach;
+        console.log(err, docs);
+      })
     },
   }),
 });
@@ -274,14 +201,24 @@ const RootMutationType = new GraphQLObjectType({
       type: UserType,
       description: 'Add a  User',
       args: {
-        firstname: { type: GraphQLNonNull(GraphQLString) },
-        lasttname: { type: GraphQLNonNull(GraphQLString) },
+        firstname: { type: GraphQLString },
+        lastname: { type: GraphQLNonNull(GraphQLString) },
         email: { type: GraphQLNonNull(GraphQLString) },
         wachtwoord: { type: GraphQLNonNull(GraphQLString) },
       },
       resolve: (parent, args) => {
-        const user = { id: users.length + 1, name: args.name };
-        users.push(user);
+        const user = new User({
+          firstname: args.firstname,
+          lastname: args.lastname,
+          email: args.email,
+          wachtwoord: args.wachtwoord,
+        });
+        console.log('User', user);
+        user.save((err, a) => {
+          if (err) return console.error(err);
+          console.log('after save: ', a);
+        });
+        console.log(args);
         return user;
       },
     },
@@ -289,6 +226,9 @@ const RootMutationType = new GraphQLObjectType({
       type: UserType,
       description: 'Update a  User',
       args: {
+        id: { type: GraphQLID },
+        firstname: { type: GraphQLString },
+        lastname: { type: GraphQLString },
         wachtwoord: { type: GraphQLString },
         companyname: { type: GraphQLString },
         address: { type: GraphQLString },
@@ -311,15 +251,15 @@ const RootMutationType = new GraphQLObjectType({
         pageBuilder: { type: GraphQLString },
         portals: { type: GraphQLString },
         socialmedia: { type: GraphQLString },
-        oauth: { type: GraphQLNonNull(GraphQLBoolean) },
-        referral: { type: GraphQLNonNull(GraphQLBoolean) },
+        // oauth: { type: GraphQLNonNull(GraphQLBoolean) },
+        // referral: { type: GraphQLNonNull(GraphQLBoolean) },
       },
       resolve: (parent, args) => {
         const user = {
           /* this method is not correct it's just a filler
           correct method should find the user and replace the
           details with those of args */
-          id: users.length + 1,
+          // id: users.length + 1,
           firstname: args.firstname,
           lastname: args.lastname,
           email: args.email,
@@ -347,7 +287,18 @@ const RootMutationType = new GraphQLObjectType({
           oauth: args.oauth,
           referral: { type: args.referral },
         };
-        users.push(user);
+        // find user and then add info with .update
+        // how do you find user?
+        const query = { _id: args.id };
+        console.log(query);
+        const a = User.updateOne(query, {
+          firstname: args.firstname,
+          lastname: args.lastname
+        }, (err, docs) => {
+          // console.log(err, docs);
+        });
+        // console.log(a);
+        // users.push(user);
         return user;
       },
     },
@@ -356,17 +307,54 @@ const RootMutationType = new GraphQLObjectType({
       description: 'Add a  portal',
       args: {
         name: { type: GraphQLNonNull(GraphQLString) },
-        type: { type: GraphQLNonNull(GraphQLString) },
+        type: { type: GraphQLString },
 
       },
       resolve: (parent, args) => {
-        const portal = {
-          id: portals.length + 1,
+        const portal = new Portal({
           name: args.name,
-          authorId: args.authorId,
-        };
-        portals.push(portal);
+          type: args.type
+        });
+        console.log('Portal', portal);
+        portal.save((err, a) => {
+          if (err) return console.error(err);
+          console.log('after save: ', a);
+        });
+        console.log(args);
         return portal;
+      },
+    },
+    deletePortal: {
+      type: PortalType,
+      description: 'Delete a  portal',
+      args: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+        type: { type: GraphQLString },
+
+      },
+      resolve: (parent, args) => {
+        // const portal = new Portal();
+
+
+        // console.log('Portal', portal);
+        Portal.deleteOne({ _id: args.id }, (err) => {
+          if (err) return console.log(err);
+          // deleted at most one portal document
+        });
+
+        return args;
+
+        // Portal.save((err, a) => {
+        //   if (err) return console.error(err);
+        //   console.log('after save: ', a);
+        //   // Portal.deleteOne({ _id: args.id }, function (err) {
+        //   //   if (err) return handleError(err);
+        //   //   // deleted at most one portal document
+        //   // });
+        // });
+        // console.log(args);
+        // return portal;
       },
     },
   }),

@@ -2,81 +2,68 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
-  password: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  emailVerificationToken: String,
-  emailVerified: Boolean,
+const { Schema } = mongoose;
 
-  snapchat: String,
-  twitter: String,
-  github: String,
-  linkedin: String,
-  steam: String,
-  twitch: String,
-  quickbooks: String,
-  tokens: Array,
+// from app.js
+// const i = new User({
+//   user: {
+//     firstname: args.firstname,
+//     lastname: args.lastname,
+//     email: args.email
+//   }
+// });
 
-  profile: {
-    firstName: { type: String },
-    lastName: { type: String },
-    email: { type: String },
-    title: String,
-    avatar: String,
-    backgroundImage: String,
-    description: String,
-    profession: String,
-    genre: String,
-    keywords: [String],
-    address: String,
-    city: String,
-    extraInfo: String,
-    hyperlinks: [String],
-    facebookLink: String,
-    instagramLink: String,
-    youtubeLink: String,
-    label: String,
-    header: String,
-    grid: String,
-    post: String
-  },
-  site: {
-    name: {
+
+const userSchema = new Schema({
+
+  local: {
+    username: {
       type: String, unique: true, sparse: true, trim: true, lowercase: true
-    }
+    },
+    password: { type: String },
+    created: Date
   },
-  google: {
+
+  firstname: String,
+  lastname: String,
+  creationdate: String,
+  email: String,
+  title: String,
+  avatar: String,
+  profilepic: String,
+  backgroundImage: String,
+  description: String,
+  profession: String,
+  genre: String,
+  pageRules: String,
+  pageContent: String,
+  hyperlinks: String, // fb,youtube,insta
+  pageBuilder: String,
+  portals: String,
+  keywords: [String],
+  accountInfo: String,
+  accounttype: String,
+  accountstatus: Boolean,
+  companyname: String,
+  address: String,
+  pobox: String,
+  telephone: String,
+  wachtwoord: String,
+  city: String,
+  country: String,
+  pagetitle: String,
+  pitch: String,
+  socialmedia: String,
+  oauth: Boolean,
+  referral: String,
+
+  portal: {
     id: String,
-    token: String,
-    refreshToken: String,
-    username: String,
     name: String,
-    sync: Boolean,
-    created: Date,
-    rawData: Object
-  },
-  facebook: {
-    id: String,
-    token: String,
-    longLivedToken: String,
-    username: String,
-    name: String,
-    sync: Boolean,
-    created: Date,
-    rawData: Object
-  },
-  instagram: {
-    id: String,
-    token: String,
-    username: String,
-    name: String,
-    sync: Boolean,
-    created: Date,
-    rawData: Object
+    type: String, // place, genre,profession etc.
   }
-}, { timestamps: true });
+
+});
 
 /**
  * Password hash middleware.
