@@ -1578,3 +1578,116 @@ If you’re the developer, submit a verification request to remove this screen. 
 Advanced
 to be reserached and resolved immediately.
 21st to do persist data to localhost/mongodb. and test 
+
+April 25th Graphql working - updated with database I/O queries and mutations below.
+to delete a user 
+mutation {
+  deleteUser(id: "id of user to be deleted ") {
+    id
+  }
+}
+
+to add a user 
+mutation {
+  addUser(firstname: "James", lastname: "Bond", email: "jamesbond@mi5.com", wachtwoord: "tester1") {
+    firstname
+  }
+}
+to update a user 
+mutation {
+  updateUser(
+    id: "id of user to be updated", 
+    firstname: "jason", 
+    lastname: "Bourne", 
+    email: "jasonbourne@gmail.com", 
+    wachtwoord: "infinite", 
+    companyname: "Blackbriar", 
+    address: "Somewhere in the US", 
+    pobox: " 22222 langley", 
+    city: " Washinton", 
+    country: "USA", 
+    telephone: "00012345678", 
+    accountstatus: "active", 
+    profilepic: "porfile pic url", 
+    pagetitle: "jason's page", 
+    pitch: " al ittle murder a little mayhem", 
+    backgroundimage: "backgroundimageurl", 
+    keywords: " jazzhop hop , dance ", 
+    profession: "spy", 
+    genre: "Espionage", 
+    pageRules: "a list of page rules", 
+    pageContent: "a list of page rules", 
+    hyperlinks: "a list of hyperlinks", 
+    pageBuilder: "a list of pagebuilder rules", 
+    portals: "a list of portals user belongs to") {
+    id
+    firstname
+    lastname
+    wachtwoord
+    companyname
+    address
+    pobox
+    city
+    country
+    telephone
+    accountstatus
+    profilepic
+    pagetitle
+    pitch
+    backgroundimage
+    keywords
+    profession
+    genre
+    pageRules
+    pageContent
+    hyperlinks
+    pageBuilder
+    portals
+  }
+}
+to query a user 
+{
+  user(id:"user id to be looked up"){
+    firstname
+    lastname
+    email
+  }
+
+}
+to query a list of users 
+{
+  users {
+    firstname
+    lastname
+  }
+}
+
+to create a portal 
+mutation{
+  createPortal(name:"testportal",type:"city",type2:"city2"){
+    name
+    type
+    type2
+  }
+}
+to delete a portal 
+mutation {
+ deletePortal(id: "id of portal to be deleted") {
+    name
+    type
+    type2
+    title
+    description
+  }
+}
+to update a portal 
+mutation {
+  updatePortal(id: "id of portal to be updated", name: "rotterdam", type: "city", type2: "bigcity") {
+    id
+    name
+    type
+    type2
+  }
+}
+
+

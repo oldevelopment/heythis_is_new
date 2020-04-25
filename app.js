@@ -109,9 +109,9 @@ const UserType = new GraphQLObjectType({
     pageBuilder: { type: GraphQLString },
     portals: { type: GraphQLString },
     keywords: { type: GraphQLString },
-    accountInfo: { type: GraphQLNonNull(GraphQLString) },
-    accounttype: { type: GraphQLNonNull(GraphQLString) },
-    accountstatus: { type: GraphQLNonNull(GraphQLBoolean) },
+    accountInfo: { type: GraphQLString },
+    accounttype: { type: GraphQLString },
+    accountstatus: { type: GraphQLString },
     companyname: { type: GraphQLString },
     address: { type: GraphQLString },
     pobox: { type: GraphQLString },
@@ -121,9 +121,9 @@ const UserType = new GraphQLObjectType({
     country: { type: GraphQLString },
     pagetitle: { type: GraphQLString },
     pitch: { type: GraphQLString },
-    socialmedia: { type: GraphQLNonNull(GraphQLString) },
-    oauth: { type: GraphQLBoolean },
-    referral: { type: GraphQLNonNull(GraphQLString) },
+    socialmedia: { type: GraphQLString },
+    // oauth: { type: GraphQLBoolean },
+    referral: { type: GraphQLString },
     users: {
       type: new GraphQLList(UserType),
       resolve: (user) => User.users.filter((user) => user.userId === user.id),
@@ -143,6 +143,7 @@ const PortalType = new GraphQLObjectType({
     description: { type: GraphQLString },
     name: { type: GraphQLString },
     type: { type: GraphQLString }, // place, genre,profession etc.
+    type2: { type: GraphQLString }, // place, genre,profession etc.
     portals: {
       type: new GraphQLList(UserType),
       resolve: (portal) => Portal.portals.filter((portal) => portal.portalId === portal.id),
@@ -231,6 +232,7 @@ const RootMutationType = new GraphQLObjectType({
         id: { type: GraphQLID },
         firstname: { type: GraphQLString },
         lastname: { type: GraphQLString },
+        email: { type: GraphQLString },
         wachtwoord: { type: GraphQLString },
         companyname: { type: GraphQLString },
         address: { type: GraphQLString },
@@ -258,6 +260,7 @@ const RootMutationType = new GraphQLObjectType({
       },
       resolve: (parent, args) => {
         const user = {
+          id: args.id,
           firstname: args.firstname,
           lastname: args.lastname,
           email: args.email,
@@ -269,7 +272,6 @@ const RootMutationType = new GraphQLObjectType({
           city: args.city,
           country: args.country,
           telephone: args.country,
-          ww: args.ww, // sites
           pagetitle: args.pagetitle,
           pitch: args.pitch,
           backgroundimage: args.backgroundimage,
@@ -291,11 +293,33 @@ const RootMutationType = new GraphQLObjectType({
         console.log(query);
         const a = User.updateOne(query, {
           firstname: args.firstname,
-          lastname: args.lastname
+          lastname: args.lastname,
+          email: args.email,
+          wachtwoord: args.wachtwoord,
+          companyname: args.companyname,
+          profilepic: args.profilepic,
+          address: args.address,
+          pobox: args.pobox,
+          city: args.city,
+          country: args.country,
+          telephone: args.country,
+          pagetitle: args.pagetitle,
+          pitch: args.pitch,
+          backgroundimage: args.backgroundimage,
+          keywords: args.keywords,
+          profession: args.profession,
+          genre: args.genre,
+          pageRules: args.pageRules,
+          pageContent: args.pageContent,
+          hyperlinks: args.hyperlinks, // fb,youtube,insta
+          pageBuilder: args.pageBuilder,
+          portals: args.portals,
+          socialmedia: args.socialmedia,
+          oauth: args.oauth,
         }, (err, docs) => {
-          // console.log(err, docs);
+          console.log(err, docs);
         });
-        // console.log(a);
+        console.log(a);
         // users.push(user);
         return user;
       },
@@ -334,6 +358,7 @@ const RootMutationType = new GraphQLObjectType({
       },
       resolve: (parent, args) => {
         const portal = new Portal({
+          id: args.id,
           name: args.name,
           type: args.type,
           type2: args.type,
@@ -370,9 +395,10 @@ const RootMutationType = new GraphQLObjectType({
       },
       resolve: (parent, args) => {
         const portal = {
+          id: args.id,
           name: args.name,
           type: args.type,
-          type2: args.type,
+          type2: args.type2,
           info: args.info,
           layout: args.layout,
           pages: args.pages,
@@ -385,8 +411,16 @@ const RootMutationType = new GraphQLObjectType({
         const query = { _id: args.id };
         console.log(query);
         const a = Portal.updateOne(query, {
-          firstname: args.firstname,
-          lastname: args.lastname
+          id: args.id,
+          name: args.name,
+          type: args.type,
+          type2: args.type2,
+          info: args.info,
+          layout: args.layout,
+          pages: args.pages,
+          footer: args.footer,
+          title: args.title,
+          description: args.description,
         }, (err, docs) => {
           // console.log(err, docs);
         });
