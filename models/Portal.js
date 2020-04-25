@@ -65,6 +65,7 @@ const portalSchema = new Schema({
   description: String,
   name: String,
   type: String,
+  type2: String,
 
 
 });

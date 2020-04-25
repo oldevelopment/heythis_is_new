@@ -44,6 +44,8 @@ dotenv.config({ path: '.env.example' });
 // const Db = require('./models/User');
 const User = require('./models/User');
 const Portal = require('./models/Portal');
+// const Keywords = require('./models/Keywords');
+
 
 // const User = require('./models/user-repo.model');
 /**
@@ -106,7 +108,7 @@ const UserType = new GraphQLObjectType({
     hyperlinks: { type: GraphQLString }, // fb,youtube,insta
     pageBuilder: { type: GraphQLString },
     portals: { type: GraphQLString },
-    keywords: { type: GraphQLNonNull(GraphQLString) },
+    keywords: { type: GraphQLString },
     accountInfo: { type: GraphQLNonNull(GraphQLString) },
     accounttype: { type: GraphQLNonNull(GraphQLString) },
     accountstatus: { type: GraphQLNonNull(GraphQLBoolean) },
@@ -251,15 +253,11 @@ const RootMutationType = new GraphQLObjectType({
         pageBuilder: { type: GraphQLString },
         portals: { type: GraphQLString },
         socialmedia: { type: GraphQLString },
-        // oauth: { type: GraphQLNonNull(GraphQLBoolean) },
-        // referral: { type: GraphQLNonNull(GraphQLBoolean) },
+        oauth: { type: GraphQLBoolean },
+        referral: { type: GraphQLBoolean },
       },
       resolve: (parent, args) => {
         const user = {
-          /* this method is not correct it's just a filler
-          correct method should find the user and replace the
-          details with those of args */
-          // id: users.length + 1,
           firstname: args.firstname,
           lastname: args.lastname,
           email: args.email,
@@ -302,18 +300,49 @@ const RootMutationType = new GraphQLObjectType({
         return user;
       },
     },
+    deleteUser: {
+      type: PortalType,
+      description: 'Delete a  User',
+      args: {
+        id: { type: GraphQLString },
+        firstname: { type: GraphQLString },
+        lastname: { type: GraphQLString },
+
+      },
+      resolve: (parent, args) => {
+        User.deleteOne({ _id: args.id }, (err) => {
+          if (err) return console.log(err);
+          // deleted at most one user document
+        });
+        return args;
+      },
+    },
     createPortal: {
       type: PortalType,
       description: 'Add a  portal',
       args: {
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
+        type2: { type: GraphQLString },
+        info: { type: GraphQLString },
+        layout: { type: GraphQLString },
+        pages: { type: GraphQLString },
+        footer: { type: GraphQLString },
+        title: { type: GraphQLString },
+        description: { type: GraphQLString },
 
       },
       resolve: (parent, args) => {
         const portal = new Portal({
           name: args.name,
-          type: args.type
+          type: args.type,
+          type2: args.type,
+          info: args.info,
+          layout: args.layout,
+          pages: args.pages,
+          footer: args.footer,
+          title: args.title,
+          description: args.description,
         });
         console.log('Portal', portal);
         portal.save((err, a) => {
@@ -324,6 +353,48 @@ const RootMutationType = new GraphQLObjectType({
         return portal;
       },
     },
+    updatePortal: {
+      type: PortalType,
+      description: 'Update a  Portal',
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLNonNull(GraphQLString) },
+        type: { type: GraphQLString },
+        type2: { type: GraphQLString },
+        info: { type: GraphQLString },
+        layout: { type: GraphQLString },
+        pages: { type: GraphQLString },
+        footer: { type: GraphQLString },
+        title: { type: GraphQLString },
+        description: { type: GraphQLString },
+      },
+      resolve: (parent, args) => {
+        const portal = {
+          name: args.name,
+          type: args.type,
+          type2: args.type,
+          info: args.info,
+          layout: args.layout,
+          pages: args.pages,
+          footer: args.footer,
+          title: args.title,
+          description: args.description,
+        };
+        // find portal and then add info with .update
+        // how do you find user?
+        const query = { _id: args.id };
+        console.log(query);
+        const a = Portal.updateOne(query, {
+          firstname: args.firstname,
+          lastname: args.lastname
+        }, (err, docs) => {
+          // console.log(err, docs);
+        });
+        // console.log(a);
+        // users.push(portal);
+        return portal;
+      },
+    },
     deletePortal: {
       type: PortalType,
       description: 'Delete a  portal',
@@ -331,7 +402,7 @@ const RootMutationType = new GraphQLObjectType({
         id: { type: GraphQLString },
         name: { type: GraphQLString },
         type: { type: GraphQLString },
-
+        type2: { type: GraphQLString },
       },
       resolve: (parent, args) => {
         // const portal = new Portal();
