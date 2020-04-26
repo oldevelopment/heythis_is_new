@@ -44,7 +44,12 @@ dotenv.config({ path: '.env.example' });
 // const Db = require('./models/User');
 const User = require('./models/User');
 const Portal = require('./models/Portal');
-// const Keywords = require('./models/Keywords');
+const Keywords = require('./models/Keywords');
+
+// Types
+const UserType = require('./graphql-types/UserType');
+const PortalType = require('./graphql-types/PortalType');
+const KeywordType = require('./graphql-types/KeywordType');
 
 
 // const User = require('./models/user-repo.model');
@@ -82,73 +87,31 @@ mongoose.connection.on('error', (err) => {
   );
   process.exit();
 });
-// data example to work swap me for db connection please
-// const db = require('./data');
-// const users = mongodb;
 
 
-const UserType = new GraphQLObjectType({
-  name: 'User',
-  description: 'This represents all the info we have on a user',
+const AmbassadorsType = new GraphQLObjectType({
+  name: 'Ambassadors',
   fields: () => ({
-    id: { type: GraphQLID },
-    firstname: { type: GraphQLString },
-    lastname: { type: GraphQLString },
-    creationdate: { type: GraphQLNonNull(GraphQLString) },
-    email: { type: GraphQLString },
-    title: { type: GraphQLNonNull(GraphQLString) },
-    avatar: { type: GraphQLString },
-    profilepic: { type: GraphQLString },
-    backgroundimage: { type: GraphQLString },
+    id: { type: GraphQLString }, // this should be id of ambasador
     description: { type: GraphQLString },
-    profession: { type: GraphQLString },
-    genre: { type: GraphQLString },
-    pageRules: { type: GraphQLString },
-    pageContent: { type: GraphQLString },
-    hyperlinks: { type: GraphQLString }, // fb,youtube,insta
-    pageBuilder: { type: GraphQLString },
-    portals: { type: GraphQLString },
-    keywords: { type: GraphQLString },
-    accountInfo: { type: GraphQLString },
-    accounttype: { type: GraphQLString },
-    accountstatus: { type: GraphQLString },
-    companyname: { type: GraphQLString },
-    address: { type: GraphQLString },
-    pobox: { type: GraphQLString },
-    telephone: { type: GraphQLString },
-    wachtwoord: { type: GraphQLString },
-    city: { type: GraphQLString },
-    country: { type: GraphQLString },
-    pagetitle: { type: GraphQLString },
-    pitch: { type: GraphQLString },
-    socialmedia: { type: GraphQLString },
-    // oauth: { type: GraphQLBoolean },
-    referral: { type: GraphQLString },
-    users: {
-      type: new GraphQLList(UserType),
-      resolve: (user) => User.users.filter((user) => user.userId === user.id),
-    },
-  }),
+  })
 });
-const PortalType = new GraphQLObjectType({
-  name: 'Portal',
-  description: 'This represents a Portal',
+
+const InfoType = new GraphQLObjectType({
+  name: 'Info',
   fields: () => ({
-    id: { type: GraphQLNonNull(GraphQLID) },
-    info: { type: GraphQLString },
-    layout: { type: GraphQLString },
-    pages: { type: GraphQLString },
-    footer: { type: GraphQLString },
-    title: { type: GraphQLString },
-    description: { type: GraphQLString },
+    id: { type: GraphQLInt },
     name: { type: GraphQLString },
-    type: { type: GraphQLString }, // place, genre,profession etc.
-    type2: { type: GraphQLString }, // place, genre,profession etc.
-    portals: {
-      type: new GraphQLList(UserType),
-      resolve: (portal) => Portal.portals.filter((portal) => portal.portalId === portal.id),
-    },
-  }),
+    criteria: { type: GraphQLString },
+    title: { type: GraphQLString },
+    ambassadors: { type: [AmbassadorsType] }, // userids
+    layout: { type: GraphQLString },
+    colors: { type: GraphQLString },
+    fonts: { type: GraphQLString },
+    post: { type: GraphQLString },
+    grid: { type: GraphQLString },
+    sidepanel: { type: GraphQLString }
+  })
 });
 
 // instead of the single schema above we now use a RootQuerytype
@@ -191,6 +154,18 @@ const RootQueryType = new GraphQLObjectType({
       },
       resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
         // docs.forEach;
+        console.log(err, docs);
+      })
+    },
+    keyword: {
+      type: KeywordType,
+      description: 'A single keyword that denotes an interest of a user',
+      args: {
+        id: { type: GraphQLID },
+        keyword: { type: GraphQLString },
+      },
+      resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+        // do not use a find one here please look up and use a 3 letter matching system
         console.log(err, docs);
       })
     },

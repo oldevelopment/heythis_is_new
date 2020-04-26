@@ -1690,4 +1690,10 @@ mutation {
   }
 }
 
-
+26th of april modularized types for easy maintenance
+added & Modularized
+AmbassadorsType
+Infotype
+KeywordType
+PortalType
+UserType
