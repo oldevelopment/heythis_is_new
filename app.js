@@ -89,30 +89,30 @@ mongoose.connection.on('error', (err) => {
 });
 
 
-const AmbassadorsType = new GraphQLObjectType({
-  name: 'Ambassadors',
-  fields: () => ({
-    id: { type: GraphQLString }, // this should be id of ambasador
-    description: { type: GraphQLString },
-  })
-});
+// const AmbassadorsType = new GraphQLObjectType({
+//   name: 'Ambassadors',
+//   fields: () => ({
+//     id: { type: GraphQLString }, // this should be id of ambasador
+//     description: { type: GraphQLString },
+//   })
+// });
 
-const InfoType = new GraphQLObjectType({
-  name: 'Info',
-  fields: () => ({
-    id: { type: GraphQLInt },
-    name: { type: GraphQLString },
-    criteria: { type: GraphQLString },
-    title: { type: GraphQLString },
-    ambassadors: { type: [AmbassadorsType] }, // userids
-    layout: { type: GraphQLString },
-    colors: { type: GraphQLString },
-    fonts: { type: GraphQLString },
-    post: { type: GraphQLString },
-    grid: { type: GraphQLString },
-    sidepanel: { type: GraphQLString }
-  })
-});
+// const InfoType = new GraphQLObjectType({
+//   name: 'Info',
+//   fields: () => ({
+//     id: { type: GraphQLInt },
+//     name: { type: GraphQLString },
+//     criteria: { type: GraphQLString },
+//     title: { type: GraphQLString },
+//     ambassadors: { type: [AmbassadorsType] }, // userids
+//     layout: { type: GraphQLString },
+//     colors: { type: GraphQLString },
+//     fonts: { type: GraphQLString },
+//     post: { type: GraphQLString },
+//     grid: { type: GraphQLString },
+//     sidepanel: { type: GraphQLString }
+//   })
+// });
 
 // instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({

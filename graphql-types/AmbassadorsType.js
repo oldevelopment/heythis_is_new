@@ -1,10 +1,3 @@
-// const AmbassadorsType = new GraphQLObjectType({
-//   name: 'Ambassadors',
-//   fields: () => ({
-//     id: { type: GraphQLString }, // this should be id of ambasador
-//     description: { type: GraphQLString },
-//   })
-// });
 
 const {
   //   GraphQLID,
@@ -22,6 +15,8 @@ const AmbassadorsType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLString }, // this should be id of ambasador
     description: { type: GraphQLString },
+    portal: { type: GraphQLString },
+
   })
 });
 

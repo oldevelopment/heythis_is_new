@@ -2,14 +2,22 @@ const {
 //   GraphQLID,
   GraphQLInt,
   GraphQLString,
-  //   GraphQLList,
+  GraphQLList,
   //   GraphQLNonNull,
   GraphQLObjectType,
 } = require('graphql');
   // const User = require('../models/User');
 
-const AmbassadorsType = require('./AmbassadorsType');
+// const AmbassadorsType = require('./AmbassadorsType');
+const AmbassadorsType = new GraphQLObjectType({
+  name: 'Ambassadors',
+  fields: () => ({
+    id: { type: GraphQLString }, // this should be id of ambasador
+    description: { type: GraphQLString },
+    portal: { type: GraphQLString },
+  })
 
+});
 
 const InfoType = new GraphQLObjectType({
   name: 'Info',
@@ -18,14 +26,22 @@ const InfoType = new GraphQLObjectType({
     name: { type: GraphQLString },
     criteria: { type: GraphQLString },
     title: { type: GraphQLString },
-    ambassadors: { type: [AmbassadorsType] }, // userids
+    ambassadors: { type: GraphQLList[{ AmbassadorsType }] }, // userids still not working
     layout: { type: GraphQLString },
     colors: { type: GraphQLString },
     fonts: { type: GraphQLString },
     post: { type: GraphQLString },
     grid: { type: GraphQLString },
-    sidepanel: { type: GraphQLString }
+    sidepanel: { type: GraphQLString },
+    // ambassadors: {
+    //   id: {
+    //     type: new GraphQLList(AmbassadorsType),
+    //      eslint-disable-next-line max-len
+    //     resolve: () => AmbassadorsType.id.filter((ambassadors) => ambassadors.userId === ambassadors.id),
+    //   }
+    // },
   })
 });
+
 
 module.exports = InfoType;
