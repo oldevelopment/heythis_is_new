@@ -28,6 +28,7 @@ const portalSchema = new Schema({
       howtoconnect: String
     },
     ambassadors: {
+      id: String,
       title: String,
       description: String,
     },

@@ -1692,8 +1692,10 @@ mutation {
 
 26th of april modularized types for easy maintenance
 added & Modularized
-AmbassadorsType
-Infotype
+AmbassadorsType *
+Infotype *
 KeywordType
 PortalType
 UserType
+
+ these types are not working properly due to nested nature. *
