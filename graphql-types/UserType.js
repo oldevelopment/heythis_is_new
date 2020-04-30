@@ -4,14 +4,18 @@ const {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLBoolean,
 } = require('graphql');
 const User = require('../models/User');
+const Keywords = require('./KeywordType');
+
 
 const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'This represents all the info we have on a user',
   fields: () => ({
     id: { type: GraphQLID },
+    userrole: { type: GraphQLString },
     firstname: { type: GraphQLString },
     lastname: { type: GraphQLString },
     creationdate: { type: GraphQLNonNull(GraphQLString) },
@@ -28,7 +32,7 @@ const UserType = new GraphQLObjectType({
     hyperlinks: { type: GraphQLString }, // fb,youtube,insta
     pageBuilder: { type: GraphQLString },
     portals: { type: GraphQLString },
-    keywords: { type: GraphQLString },
+    keywords: { type: GraphQLList(Keywords) },
     accountInfo: { type: GraphQLString },
     accounttype: { type: GraphQLString },
     accountstatus: { type: GraphQLString },
@@ -42,7 +46,8 @@ const UserType = new GraphQLObjectType({
     pagetitle: { type: GraphQLString },
     pitch: { type: GraphQLString },
     socialmedia: { type: GraphQLString },
-    // oauth: { type: GraphQLBoolean },
+    oauth: { type: GraphQLBoolean },
+    ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },
     users: {
       type: new GraphQLList(UserType),

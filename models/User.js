@@ -56,6 +56,7 @@ const userSchema = new Schema({
   socialmedia: String,
   oauth: Boolean,
   referral: String,
+  ambassadorstatus: Boolean,
 
   portal: {
     id: String,

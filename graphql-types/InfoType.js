@@ -2,13 +2,17 @@ const {
 //   GraphQLID,
   GraphQLInt,
   GraphQLString,
-  // GraphQLList,
+  GraphQLList,
   //   GraphQLNonNull,
   GraphQLObjectType,
 } = require('graphql');
 // const Portal = require('../models/Portal');
 
-// const AmbassadorsType = require('./AmbassadorsType');
+const AmbassadorType = require('./AmbassadorType');
+const LayoutType = require('./LayoutType');
+const Colors = require('./Colors');
+const Fonts = require('./Fonts');
+const Post = require('./Post');
 
 
 const InfoType = new GraphQLObjectType({
@@ -18,11 +22,11 @@ const InfoType = new GraphQLObjectType({
     name: { type: GraphQLString },
     criteria: { type: GraphQLString },
     title: { type: GraphQLString },
-    // ambassadors: { type: GraphQLList[AmbassadorsType] },  userids still not working
-    layout: { type: GraphQLString },
-    colors: { type: GraphQLString },
-    fonts: { type: GraphQLString },
-    post: { type: GraphQLString },
+    ambassadors: { type: GraphQLList(AmbassadorType) }, // userids still not working
+    layout: { type: GraphQLList(LayoutType) },
+    colors: { type: GraphQLList(Colors) },
+    fonts: { type: GraphQLList(Fonts) },
+    post: { type: GraphQLList(Post) },
     grid: { type: GraphQLString },
     sidepanel: { type: GraphQLString },
   })
