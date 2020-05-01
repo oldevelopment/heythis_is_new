@@ -7,6 +7,7 @@ const {
   GraphQLBoolean,
 } = require('graphql');
 const User = require('../models/User');
+const TokenType = require('./TokenType');
 const Keywords = require('./KeywordType');
 
 
@@ -49,6 +50,7 @@ const UserType = new GraphQLObjectType({
     oauth: { type: GraphQLBoolean },
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },
+    tokens: { type: GraphQLList(TokenType) },
     users: {
       type: new GraphQLList(UserType),
       resolve: () => User.users.filter((user) => user.userId === user.id),

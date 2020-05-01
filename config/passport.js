@@ -311,15 +311,15 @@ const googleStrategyConfig = new GoogleStrategy({
         User.findById(req.user.id, (err, user) => {
           if (err) { return done(err); }
           user.google = profile.id;
-          user.tokens.push({
+          user.tokens = [{
             kind: 'google',
             accessToken,
             accessTokenExpires: moment().add(params.expires_in, 'seconds').format(),
             refreshToken,
-          });
-          user.profile.name = user.profile.name || profile.displayName;
-          user.profile.gender = user.profile.gender || profile._json.gender;
-          user.profile.picture = user.profile.picture || profile._json.picture;
+          }];
+          // user.profile.name = user.profile.name || profile.displayName;
+          // user.profile.gender = user.profile.gender || profile._json.gender;
+          // user.profile.picture = user.profile.picture || profile._json.picture;
           user.save((err) => {
             req.flash('info', { msg: 'Google account has been linked.' });
             done(err, user);
@@ -342,15 +342,20 @@ const googleStrategyConfig = new GoogleStrategy({
           const user = new User();
           user.email = profile.emails[0].value;
           user.google = profile.id;
-          user.tokens.push({
+          user.tokens = [{
             kind: 'google',
             accessToken,
             accessTokenExpires: moment().add(params.expires_in, 'seconds').format(),
             refreshToken,
-          });
-          user.profile.name = profile.displayName;
-          user.profile.gender = profile._json.gender;
-          user.profile.picture = profile._json.picture;
+          }];
+          user.profile = {
+            name: profile.displayName,
+            gender: profile._json.gender,
+            picture: profile._json.picture
+          };
+          // user.profile.name = profile.displayName;
+          // user.profile.gender = profile._json.gender;
+          // user.profile.picture = profile._json.picture;
           user.save((err) => {
             done(err, user);
           });

@@ -9,6 +9,7 @@ const {
 // const User = require('../models/User');
 const Portal = require('../models/Portal');
 const InfoType = require('./InfoType');
+// const LayoutType = require('./LayoutType');
 
 
 const PortalType = new GraphQLObjectType({

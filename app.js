@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable function-paren-newline */
 /**
@@ -32,6 +33,7 @@ const {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLSchema,
+  GraphQLInputObjectType
 } = require('graphql');
 
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
@@ -50,6 +52,9 @@ const Keywords = require('./models/Keywords');
 const UserType = require('./graphql-types/UserType');
 const PortalType = require('./graphql-types/PortalType');
 const KeywordType = require('./graphql-types/KeywordType');
+const InfoType = require('./graphql-types/InfoType');
+const TokenType = require('./graphql-types/TokenType');
+const InputInfoType = require('./graphql-types/InputInfoType');
 
 
 // const User = require('./models/user-repo.model');
@@ -87,32 +92,6 @@ mongoose.connection.on('error', (err) => {
   );
   process.exit();
 });
-
-
-// const AmbassadorsType = new GraphQLObjectType({
-//   name: 'Ambassadors',
-//   fields: () => ({
-//     id: { type: GraphQLString }, // this should be id of ambasador
-//     description: { type: GraphQLString },
-//   })
-// });
-
-// const InfoType = new GraphQLObjectType({
-//   name: 'Info',
-//   fields: () => ({
-//     id: { type: GraphQLInt },
-//     name: { type: GraphQLString },
-//     criteria: { type: GraphQLString },
-//     title: { type: GraphQLString },
-//     ambassadors: { type: [AmbassadorsType] }, // userids
-//     layout: { type: GraphQLString },
-//     colors: { type: GraphQLString },
-//     fonts: { type: GraphQLString },
-//     post: { type: GraphQLString },
-//     grid: { type: GraphQLString },
-//     sidepanel: { type: GraphQLString }
-//   })
-// });
 
 // instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({
@@ -323,7 +302,7 @@ const RootMutationType = new GraphQLObjectType({
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
         type2: { type: GraphQLString },
-        info: { type: GraphQLString },
+        info: { type: GraphQLNonNull(InputInfoType) },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
@@ -361,7 +340,7 @@ const RootMutationType = new GraphQLObjectType({
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
         type2: { type: GraphQLString },
-        info: { type: GraphQLString },
+        info: { type: GraphQLNonNull(InputInfoType) },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
@@ -410,8 +389,6 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLString },
         name: { type: GraphQLString },
-        type: { type: GraphQLString },
-        type2: { type: GraphQLString },
       },
       resolve: (parent, args) => {
         // const portal = new Portal();

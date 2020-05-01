@@ -10,8 +10,8 @@ const {
 
 const AmbassadorType = require('./AmbassadorType');
 const LayoutType = require('./LayoutType');
-const Colors = require('./Colors');
-const Fonts = require('./Fonts');
+const Colors = require('./ColorsType');
+const Fonts = require('./FontsType');
 const Post = require('./Post');
 
 
