@@ -173,7 +173,7 @@
 //                                         grid: GraphQLString,
 //                                         post: GraphQLString,)
 //       },
-//       site: { GraphQLString, resolve: (user) => user.site }, //done 
+//       site: { GraphQLString, resolve: (user) => user.site }, //done
 //       google: {
 //         id: GraphQLString,
 //         token: GraphQLString,

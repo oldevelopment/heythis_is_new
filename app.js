@@ -52,7 +52,7 @@ const Keywords = require('./models/Keywords');
 const UserType = require('./graphql-types/UserType');
 const PortalType = require('./graphql-types/PortalType');
 const KeywordType = require('./graphql-types/KeywordType');
-const InfoType = require('./graphql-types/InfoType');
+const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
 const InputInfoType = require('./graphql-types/InputInfoType');
 

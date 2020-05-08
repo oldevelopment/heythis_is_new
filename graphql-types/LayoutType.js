@@ -11,10 +11,14 @@ const {
 
 const LayoutType = new GraphQLObjectType({
   name: 'Layout',
+  description: 'this should be instructions for the front end to store layout',
   fields: () => ({
-    id: { type: GraphQLString }, // this should be id of ambasador
     description: { type: GraphQLString },
-    portal: { type: GraphQLString },
+    colors: { type: GraphQLString },
+    fonts: { type: GraphQLString },
+    post: { type: GraphQLString },
+    grid: { type: GraphQLString },
+    sidepanel: { type: GraphQLString },
   })
 });
 

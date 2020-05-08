@@ -9,6 +9,7 @@ const {
 const User = require('../models/User');
 const TokenType = require('./TokenType');
 const Keywords = require('./KeywordType');
+// const FacebookType = require('./FacebookType');
 
 
 const UserType = new GraphQLObjectType({
@@ -47,6 +48,7 @@ const UserType = new GraphQLObjectType({
     pagetitle: { type: GraphQLString },
     pitch: { type: GraphQLString },
     socialmedia: { type: GraphQLString },
+    facebookId: { type: GraphQLString },
     oauth: { type: GraphQLBoolean },
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },

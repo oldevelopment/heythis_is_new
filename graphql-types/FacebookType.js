@@ -7,16 +7,16 @@ const {
   GraphQLObjectType,
 } = require('graphql');
 
-const TokenType = new GraphQLObjectType({
-  name: 'Token',
-  description: 'This represents the token you get from a user logging in to a social media',
+const FacebookType = new GraphQLObjectType({
+  name: 'Facebook',
+  description: 'This represents the Facebook token you get from a user logging in to a social media',
   fields: () => ({
     id: { type: GraphQLString },
     token: { type: GraphQLString },
-    longtoken: { type: GraphQLString },
+    longFacebook: { type: GraphQLString },
     /* this is a list of all the keywords we have and should eventually be
-        populated using alvinios list */
+          populated using alvinios list */
   })
 });
 
-module.exports = TokenType;
+module.exports = FacebookType;

@@ -9,6 +9,7 @@ const {
 
 const KeywordType = new GraphQLObjectType({
   name: 'Keyword',
+  description: 'this is a tag or key word each one represents is search able and if you search it wshould return a list of users that share this keyword',
   fields: () => ({
     id: { type: GraphQLString },
     keyword: { type: GraphQLString },

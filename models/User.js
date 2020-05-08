@@ -53,7 +53,26 @@ const userSchema = new Schema({
   country: String,
   pagetitle: String,
   pitch: String,
-  socialmedia: String,
+  socialmedia: String, // youtube , facebook, instagramportal
+  youtube: {
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+    // add a token field
+  },
+  Instagram: {
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+    // add a token field
+  },
+  facebookId: String,
+  facebook: {
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+    // add a token field
+  },
   oauth: Boolean,
   referral: String,
   ambassadorstatus: Boolean,
