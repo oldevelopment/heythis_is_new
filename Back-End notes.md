@@ -153,3 +153,15 @@ it has to be done via inputtypes
 
 google login now working  
 :smile:
+
+8th April : After over 2 weeks of trying to figure out if facebook login will work with instagram I have finally discovered when they(facebook) removed instagram authentication they did not provide an alternative.
+Thus things to note in certain user cases 
+user has facebook = :unlock:
+user has email = :unlock:
+user has only instagram? = create account with either facebook or email and then :unlock:
+
+facebook login now working  
+:smile:
+
+instagram token accessed   
+:smile:
