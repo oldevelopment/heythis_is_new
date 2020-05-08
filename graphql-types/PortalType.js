@@ -10,6 +10,7 @@ const {
 const Portal = require('../models/Portal');
 const SettingsType = require('./SettingsType');
 const AmbassadorType = require('./AmbassadorType');
+const OnboardingType = require('./OnboardingType');
 const PagesType = require('./PagesType');
 const FooterType = require('./FooterType');
 // const LayoutType = require('./LayoutType');
@@ -31,7 +32,8 @@ const PortalType = new GraphQLObjectType({
     name: { type: GraphQLString },
     type: { type: GraphQLString }, // place, genre,profession etc.
     type2: { type: GraphQLString }, // place, genre,profession etc.
-    ambassadors: { type: GraphQLList[AmbassadorType] },
+    ambassadors: { type: GraphQLList(AmbassadorType) },
+    onboarding: { type: OnboardingType },
     portals: {
       type: new GraphQLList(PortalType),
       resolve: () => Portal.portals.filter((portal) => portal.portalId === portal.id),

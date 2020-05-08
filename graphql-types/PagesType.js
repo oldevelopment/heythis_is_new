@@ -2,13 +2,19 @@
 const {
   //   GraphQLID,
   //   GraphQLInt,
-  GraphQLString,
+  // GraphQLString,
   GraphQLBoolean,
-  // GraphQLList,
+  GraphQLList,
   //   GraphQLNonNull,
   GraphQLObjectType,
 } = require('graphql');
 const HomeType = require('./HomeType');
+const AmbassadorType = require('./AmbassadorType');
+const PersonsType = require('./PersonsType');
+const OnboardingType = require('./OnboardingType');
+const UpdatesType = require('./UpdatesType');
+const VideoType = require('./VideoType');
+const PlacesType = require('./PlacesType');
 
 
 const PagesType = new GraphQLObjectType({
@@ -18,41 +24,19 @@ const PagesType = new GraphQLObjectType({
     allcontent: { type: GraphQLBoolean },
     custom: { type: GraphQLBoolean },
     home: { type: HomeType },
-    ambassadors: {
-      id: { type: GraphQLString },
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      hide_show: { type: GraphQLBoolean },
-    },
-    persons: {
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      hide_show: { type: GraphQLBoolean },
-    },
+    ambassadors: { type: GraphQLList(AmbassadorType) },
+    persons: { type: GraphQLList(PersonsType) },
     places: {
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      hide_show: { type: GraphQLBoolean },
+      type: PlacesType
     },
     videos: {
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      hide_show: { type: GraphQLBoolean },
+      type: VideoType
     },
     updates: {
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      backgroundImage: { type: GraphQLString },
-      hide_show: { type: GraphQLBoolean },
+      type: UpdatesType
     },
     onboarding: {
-      title: { type: GraphQLString },
-      description: { type: GraphQLString },
-      finishmessage: { type: GraphQLString },
+      type: OnboardingType
     },
   })
 });
