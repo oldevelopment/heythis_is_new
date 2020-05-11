@@ -147,6 +147,23 @@ mutation {
     typeof2
   }
 }
+to update a user 
+mutation {
+  updateUser(id: "5ea40c26dbdfab78875d2e9b", firstname: "Vera", wachtwoord: "mzhaal2", companyname: "OSS-CIA", country: "U.S.A", ww: "www.oss.com", profession: "Female secret agent", portals: "world class female spies", socialmedia: "has facebook", keywords: [{keyword: "nederpop"}, {keyword: "Reggeaton"}, {keyword: "Salsa"}, {keyword: "EDM"}, {keyword: "Trance"}, {keyword: "Jazz"}]) {
+    firstname
+    lastname
+    email
+    id
+    wachtwoord
+    companyname
+    country
+    profession
+    portals
+    keywords {
+      keyword
+    }
+  }
+}
 
 
 26th of april modularized types for easy maintenance
