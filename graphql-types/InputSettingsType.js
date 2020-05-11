@@ -16,8 +16,8 @@ const InputFonts = require('./InputFontsType');
 const InputPost = require('./InputPostType');
 
 
-const InputInfoType = new GraphQLInputObjectType({
-  name: 'PortalInputInfo',
+const InputSettingsType = new GraphQLInputObjectType({
+  name: 'PortalInputSettings',
   fields: () => ({
     id: { type: GraphQLInt },
     // name: { type: GraphQLString },
@@ -34,4 +34,4 @@ const InputInfoType = new GraphQLInputObjectType({
 });
 
 
-module.exports = InputInfoType;
+module.exports = InputSettingsType;

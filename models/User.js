@@ -40,7 +40,7 @@ const userSchema = new Schema({
   hyperlinks: String, // fb,youtube,insta
   pageBuilder: String,
   portals: String,
-  keywords: [String],
+  keywords: [{ id: String, keyword: String }],
   accountInfo: String,
   accounttype: String,
   accountstatus: Boolean,

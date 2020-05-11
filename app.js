@@ -47,6 +47,7 @@ dotenv.config({ path: '.env.example' });
 const User = require('./models/User');
 const Portal = require('./models/Portal');
 const Keywords = require('./models/Keywords');
+// const InputKeywordType = require('./models/InputKeywordType');
 
 // Types
 const UserType = require('./graphql-types/UserType');
@@ -54,7 +55,8 @@ const PortalType = require('./graphql-types/PortalType');
 const KeywordType = require('./graphql-types/KeywordType');
 const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
-const InputInfoType = require('./graphql-types/InputInfoType');
+const InputSettingsType = require('./graphql-types/InputSettingsType');
+const InputKeywordType = require('./graphql-types/InputKeywordType');
 
 
 // const User = require('./models/user-repo.model');
@@ -120,6 +122,9 @@ const RootQueryType = new GraphQLObjectType({
     users: {
       type: new GraphQLList(UserType),
       description: 'List of all user',
+      args: {
+        keywords: { type: GraphQLString },
+      },
       resolve: () => User.find({}, (err, docs) => {
         // docs.forEach
         console.log(err, docs);
@@ -148,8 +153,20 @@ const RootQueryType = new GraphQLObjectType({
         console.log(err, docs);
       })
     },
+    keywords: {
+      type: new GraphQLList(KeywordType),
+      description: 'List of all Keywords',
+      resolve: () => Keywords.find({}, (err, docs) => {
+        // docs.forEach
+        console.log(err, docs);
+      })
+    },
   }),
 });
+const KeywordInput = {
+  keyword: String
+
+};
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   description: 'Root Mutation',
@@ -200,7 +217,7 @@ const RootMutationType = new GraphQLObjectType({
         pagetitle: { type: GraphQLString },
         pitch: { type: GraphQLString },
         backgroundimage: { type: GraphQLString },
-        keywords: { type: GraphQLString },
+        keywords: { type: new GraphQLList(InputKeywordType) },
         profession: { type: GraphQLString },
         genre: { type: GraphQLString },
         pageRules: { type: GraphQLString },
@@ -241,11 +258,12 @@ const RootMutationType = new GraphQLObjectType({
           oauth: args.oauth,
           referral: { type: args.referral },
         };
+        console.log(args.keywords);
         // find user and then add info with .update
         // how do you find user?
         const query = { _id: args.id };
-        console.log(query);
-        const a = User.updateOne(query, {
+        // console.log(query);
+        const a = User.findByIdAndUpdate(query, {
           firstname: args.firstname,
           lastname: args.lastname,
           email: args.email,
@@ -273,7 +291,7 @@ const RootMutationType = new GraphQLObjectType({
         }, (err, docs) => {
           console.log(err, docs);
         });
-        console.log(a);
+        // console.log(a);
         // users.push(user);
         return user;
       },
@@ -301,8 +319,8 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
-        type2: { type: GraphQLString },
-        info: { type: GraphQLNonNull(InputInfoType) },
+        typeof2: { type: GraphQLString },
+        settings: { type: (InputSettingsType) },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
@@ -315,8 +333,8 @@ const RootMutationType = new GraphQLObjectType({
           id: args.id,
           name: args.name,
           type: args.type,
-          type2: args.type,
-          info: args.info,
+          typeof2: args.typeof2,
+          settings: args.settings,
           layout: args.layout,
           pages: args.pages,
           footer: args.footer,
@@ -339,8 +357,8 @@ const RootMutationType = new GraphQLObjectType({
         id: { type: GraphQLID },
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
-        type2: { type: GraphQLString },
-        info: { type: GraphQLNonNull(InputInfoType) },
+        typeof2: { type: GraphQLString },
+        settings: { type: (InputSettingsType) },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
@@ -352,8 +370,8 @@ const RootMutationType = new GraphQLObjectType({
           id: args.id,
           name: args.name,
           type: args.type,
-          type2: args.type2,
-          info: args.info,
+          typeof2: args.typeof2,
+          settings: args.settings,
           layout: args.layout,
           pages: args.pages,
           footer: args.footer,
@@ -368,8 +386,8 @@ const RootMutationType = new GraphQLObjectType({
           id: args.id,
           name: args.name,
           type: args.type,
-          type2: args.type2,
-          info: args.info,
+          typeof2: args.typeof2,
+          settings: args.settings,
           layout: args.layout,
           pages: args.pages,
           footer: args.footer,
@@ -412,6 +430,25 @@ const RootMutationType = new GraphQLObjectType({
         // });
         // console.log(args);
         // return portal;
+      },
+    },
+    addKeyword: {
+      type: KeywordType,
+      description: 'Add a  Keyword',
+      args: {
+        keyword: { type: GraphQLString },
+      },
+      resolve: (parent, args) => {
+        const keyword = new Keywords({
+          keyword: args.keyword,
+        });
+        console.log('Keywords', keyword);
+        keyword.save((err, a) => {
+          if (err) return console.error(err);
+          console.log('after save: ', a);
+        });
+        console.log(args);
+        return keyword;
       },
     },
   }),

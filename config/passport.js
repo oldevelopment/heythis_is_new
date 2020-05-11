@@ -131,6 +131,7 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   if (req.user) {
+    console.log(accessToken);
     User.findOne({ facebook: profile.id }, (err, existingUser) => {
       if (err) { return done(err); }
       if (existingUser) {
@@ -174,6 +175,7 @@ passport.use(new FacebookStrategy({
           const user = new User();
           user.email = profile._json.email;
           user.facebookId = profile.id;
+          user.accessToken = profile.accessToken;
           // user.facebook = { id: profile.id };
           // user.tokens.push({ kind: 'facebook', accessToken });
           user.tokens = [{

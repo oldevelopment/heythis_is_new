@@ -95,11 +95,14 @@ mutation {
 }
 to query a user 
 {
-  user(id:"user id to be looked up"){
-    firstname
-    lastname
+  user(id:"Id#"){
+    id
     email
+    keywords {
+      keyword
+    }
   }
+}
 
 }
 to query a list of users 
@@ -109,34 +112,42 @@ to query a list of users
     lastname
   }
 }
-
-to create a portal 
-mutation{
-  createPortal(name:"testportal",type:"city",type2:"city2"){
-    name
-    type
-    type2
+to query a list of key words
+{
+ keywords {
+    id
+    keyword
   }
 }
+
+to create a portal 
+mutation {
+  createPortal(name: "Alvinio's Special", type: "vanity", typeof2:"city2") {
+    name
+    type
+    typeof2
+  }
+}
+
 to delete a portal 
 mutation {
  deletePortal(id: "id of portal to be deleted") {
     name
     type
-    type2
+    typeof2
     title
     description
   }
 }
 to update a portal 
 mutation {
-  updatePortal(id: "id of portal to be updated", name: "rotterdam", type: "city", type2: "bigcity") {
-    id
+  updatePortal(id: "id of portal to be updated",name: "Alvinio's Special Portal", type: "vanity-Test", typeof2:"Test-city2") {
     name
     type
-    type2
+    typeof2
   }
 }
+
 
 26th of april modularized types for easy maintenance
 added & Modularized
@@ -165,3 +176,8 @@ facebook login now working
 
 instagram token accessed   
 :smile:
+
+TODO : 
+explain the flow to get insta info
+explain the flow to get FB info
+explain the flow to get youtube info

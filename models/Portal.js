@@ -95,7 +95,7 @@ const portalSchema = new Schema({
   description: String,
   name: String,
   type: String,
-  type2: String,
+  typeof2: String,
   ambassadors: {
     id: String,
     firstname: String,

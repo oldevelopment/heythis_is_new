@@ -31,7 +31,7 @@ const PortalType = new GraphQLObjectType({
     description: { type: GraphQLString },
     name: { type: GraphQLString },
     type: { type: GraphQLString }, // place, genre,profession etc.
-    type2: { type: GraphQLString }, // place, genre,profession etc.
+    typeof2: { type: GraphQLString }, // place, genre,profession etc.
     ambassadors: { type: GraphQLList(AmbassadorType) },
     onboarding: { type: OnboardingType },
     portals: {

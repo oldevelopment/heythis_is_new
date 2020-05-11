@@ -18,4 +18,5 @@ const KeywordType = new GraphQLObjectType({
   })
 });
 
+
 module.exports = KeywordType;

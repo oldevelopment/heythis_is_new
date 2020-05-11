@@ -6,7 +6,7 @@ const { Schema } = mongoose;
 
 const keywordsSchema = new Schema({
 
-  keywords: String, // keywords pre populated by alvinio
+  keyword: String, // keywords pre populated by alvinio
 });
 
 
