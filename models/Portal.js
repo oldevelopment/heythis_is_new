@@ -8,7 +8,7 @@ const { Schema } = mongoose;
 
 
 const portalSchema = new Schema({
-
+  id: String,
   settings: {
     criteria_main: String,
     criteria_sub: String,

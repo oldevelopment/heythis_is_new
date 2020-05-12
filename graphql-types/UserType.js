@@ -9,7 +9,11 @@ const {
 const User = require('../models/User');
 const TokenType = require('./TokenType');
 const Keywords = require('./KeywordType');
-// const FacebookType = require('./FacebookType');
+const FacebookType = require('./FacebookType');
+// const PortalType = require('./PortalType');
+const LocalType = require('./LocalType');
+const YoutubeType = require('./YoutubeType');
+const InstagramType = require('./InstagramType');
 
 
 const UserType = new GraphQLObjectType({
@@ -17,6 +21,7 @@ const UserType = new GraphQLObjectType({
   description: 'This represents all the info we have on a user',
   fields: () => ({
     id: { type: GraphQLID },
+    local: { type: (LocalType) },
     userrole: { type: GraphQLString },
     firstname: { type: GraphQLString },
     lastname: { type: GraphQLString },
@@ -33,22 +38,24 @@ const UserType = new GraphQLObjectType({
     pageContent: { type: GraphQLString },
     hyperlinks: { type: GraphQLString }, // fb,youtube,insta
     pageBuilder: { type: GraphQLString },
-    portals: { type: GraphQLString },
+    portals: { type: GraphQLList(GraphQLString) },
     keywords: { type: GraphQLList(Keywords) },
     accountInfo: { type: GraphQLString },
     accounttype: { type: GraphQLString },
-    accountstatus: { type: GraphQLString },
+    accountstatus: { type: GraphQLBoolean },
     companyname: { type: GraphQLString },
     address: { type: GraphQLString },
     pobox: { type: GraphQLString },
     telephone: { type: GraphQLString },
-    wachtwoord: { type: GraphQLString },
     city: { type: GraphQLString },
     country: { type: GraphQLString },
     pagetitle: { type: GraphQLString },
     pitch: { type: GraphQLString },
     socialmedia: { type: GraphQLString },
+    youtube: { type: (YoutubeType) },
+    Instagram: { type: (InstagramType) },
     facebookId: { type: GraphQLString },
+    facebook: { type: FacebookType },
     oauth: { type: GraphQLBoolean },
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },

@@ -1,18 +1,9 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+// const portal = require('./Portal');
 
 const { Schema } = mongoose;
-
-// from app.js
-// const i = new User({
-//   user: {
-//     firstname: args.firstname,
-//     lastname: args.lastname,
-//     email: args.email
-//   }
-// });
-
 
 const userSchema = new Schema({
 
@@ -21,9 +12,8 @@ const userSchema = new Schema({
       type: String, unique: true, sparse: true, trim: true, lowercase: true
     },
     password: { type: String },
-    created: Date
+    created: String // Date
   },
-
   firstname: String,
   lastname: String,
   creationdate: String,
@@ -39,7 +29,7 @@ const userSchema = new Schema({
   pageContent: String,
   hyperlinks: String, // fb,youtube,insta
   pageBuilder: String,
-  portals: String,
+  portals: [String],
   keywords: [{ id: String, keyword: String }],
   accountInfo: String,
   accounttype: String,
@@ -48,7 +38,6 @@ const userSchema = new Schema({
   address: String,
   pobox: String,
   telephone: String,
-  wachtwoord: String,
   city: String,
   country: String,
   pagetitle: String,
@@ -58,26 +47,40 @@ const userSchema = new Schema({
     id: String,
     name: String,
     type: String, // place, genre,profession etc.
-    // add a token field
+    token: String,
+    refreshToken: String,
+    username: String,
+    sync: Boolean,
+    created: Date,
+    // rawData: Object
   },
   Instagram: {
     id: String,
     name: String,
     type: String, // place, genre,profession etc.
-    // add a token field
+    username: String,
+    token: String,
+    sync: Boolean,
+    created: Date,
+    // rawData: Object
   },
   facebookId: String,
   facebook: {
     id: String,
     name: String,
     type: String, // place, genre,profession etc.
-    // add a token field
+    token: String,
+    longLivedToken: String,
+    username: String,
+    sync: Boolean,
+    created: Date,
+    // rawData: Object
   },
   oauth: Boolean,
   referral: String,
   ambassadorstatus: Boolean,
 
-  portal: {
+  portal: { // why is this portal here ?
     id: String,
     name: String,
     type: String, // place, genre,profession etc.

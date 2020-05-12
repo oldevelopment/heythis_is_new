@@ -149,7 +149,7 @@ mutation {
 }
 to update a user 
 mutation {
-  updateUser(id: "5ea40c26dbdfab78875d2e9b", firstname: "Vera", wachtwoord: "mzhaal2", companyname: "OSS-CIA", country: "U.S.A", ww: "www.oss.com", profession: "Female secret agent", portals: "world class female spies", socialmedia: "has facebook", keywords: [{keyword: "nederpop"}, {keyword: "Reggeaton"}, {keyword: "Salsa"}, {keyword: "EDM"}, {keyword: "Trance"}, {keyword: "Jazz"}]) {
+  updateUser(id: "5ea40c26dbdfab78875d2e9b",oauth:true, firstname: "Vera", wachtwoord: "mzhaal2", companyname: "OSS-CIA", country: "U.S.A", ww: "www.oss.com", profession: "Female secret agent", portals: "world class female spies", socialmedia: "has facebook", keywords: [{keyword: "nederpop"}, {keyword: "Reggeaton"}, {keyword: "Salsa"}, {keyword: "EDM"}, {keyword: "Trance"}, {keyword: "Jazz"}]) {
     firstname
     lastname
     email
@@ -198,3 +198,8 @@ TODO :
 explain the flow to get insta info
 explain the flow to get FB info
 explain the flow to get youtube info
+
+11th updated keywords query and mutation and allowed keywords to be created from users
+12th updated models to reflect original project.
+user.js portal why ? especially since we have portaljs and portal types ? q for alvinio
+Added various types for facebook instagram and youtube (remember to change google in app.js to store to the youtube object)

@@ -8,23 +8,21 @@ const {
   GraphQLObjectType,
 } = require('graphql');
 
-const FacebookType = new GraphQLObjectType({
-  name: 'Facebook',
-  description: 'This represents the Facebook token you get from a user logging in to a social media',
+const YoutubeType = new GraphQLObjectType({
+  name: 'Youtube',
+  description: 'This represents the Youtube token you get from a user logging in to a social media',
   fields: () => ({
     id: { type: GraphQLString },
-    token: { type: GraphQLString },
     name: { type: GraphQLString },
     type: { type: GraphQLString }, // place, genre,profession etc.
-    longLivedToken: { type: GraphQLString },
+    token: { type: GraphQLString },
+    refreshToken: { type: GraphQLString },
     username: { type: GraphQLString },
     sync: { type: GraphQLBoolean },
     created: { type: GraphQLString },
-    // rawData: { type: GraphQLObjectType },
+    // rawData: { type: GraphQLObjectType }
 
-    /* this is a list of all the keywords we have and should eventually be
-          populated using alvinios list */
   })
 });
 
-module.exports = FacebookType;
+module.exports = YoutubeType;
