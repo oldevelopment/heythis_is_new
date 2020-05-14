@@ -150,9 +150,10 @@ passport.use(new FacebookStrategy({
             refreshToken,
           }];
           // eslint-disable-next-line max-len
-          // user.profile.name = user.profile.name || `${profile.name.givenName} ${profile.name.familyName}`;
-          // user.profile.gender = user.profile.gender || profile._json.gender;
-          // user.profile.picture = user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
+          user.firstname = user.profile.name || `${profile.name.givenName}`;
+          user.lastname = user.profile.name || `${profile.name.familyName}`;
+          // user.gender = user.profile.gender || profile._json.gender;
+          user.picture = user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
           user.save((err) => {
             req.flash('info', { msg: 'Facebook account has been linked.' });
             done(err, user);
@@ -179,15 +180,15 @@ passport.use(new FacebookStrategy({
           // user.facebook = { id: profile.id };
           // user.tokens.push({ kind: 'facebook', accessToken });
           user.tokens = [{
-            kind: 'google',
+            kind: 'facebook',
             accessToken,
             // accessTokenExpires: moment().add(params.expires_in, 'seconds').format(),
             refreshToken,
           }];
-          // user.profile.name = `${profile.name.givenName} ${profile.name.familyName}`;
-          // user.profile.gender = profile._json.gender;
-          // user.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large`;
-          // user.profile.location = (profile._json.location) ? profile._json.location.name : '';
+          user.fbname = `${profile.name.givenName} ${profile.name.familyName}`;
+          user.fbgender = profile._json.gender;
+          user.fbpicture = `https://graph.facebook.com/${profile.id}/picture?type=large`;
+          user.fblocation = (profile._json.location) ? profile._json.location.name : '';
           user.save((err) => {
             done(err, user);
           });
@@ -407,9 +408,9 @@ const googleStrategyConfig = new GoogleStrategy({
             accessTokenExpires: moment().add(params.expires_in, 'seconds').format(),
             refreshToken,
           }];
-          // user.profile.name = user.profile.name || profile.displayName;
-          // user.profile.gender = user.profile.gender || profile._json.gender;
-          // user.profile.picture = user.profile.picture || profile._json.picture;
+          user.firstname = user.profile.name || profile.displayName;
+          user.gender = user.profile.gender || profile._json.gender;
+          user.picture = user.profile.picture || profile._json.picture;
           user.save((err) => {
             req.flash('info', { msg: 'Google account has been linked.' });
             done(err, user);
@@ -443,9 +444,9 @@ const googleStrategyConfig = new GoogleStrategy({
             gender: profile._json.gender,
             picture: profile._json.picture
           };
-          // user.profile.name = profile.displayName;
-          // user.profile.gender = profile._json.gender;
-          // user.profile.picture = profile._json.picture;
+          user.name = profile.displayName;
+          user.gender = profile._json.gender;
+          user.picture = profile._json.picture;
           user.save((err) => {
             done(err, user);
           });

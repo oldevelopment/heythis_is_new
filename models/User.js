@@ -17,6 +17,9 @@ const userSchema = new Schema({
   firstname: String,
   lastname: String,
   creationdate: String,
+  name: String,
+  gender: String,
+  picture: String,
   email: String,
   title: String,
   avatar: String,
@@ -43,6 +46,18 @@ const userSchema = new Schema({
   pagetitle: String,
   pitch: String,
   socialmedia: String, // youtube , facebook, instagramportal
+  google: String,
+  tokens: [],
+  // google: {
+  //   id: String,
+  //   token: String,
+  //   refreshToken: String,
+  //   username: String,
+  //   name: String,
+  //   sync: Boolean,
+  //   created: Date,
+  //   // rawData: Object
+  // },
   youtube: {
     id: String,
     name: String,
@@ -84,7 +99,11 @@ const userSchema = new Schema({
     id: String,
     name: String,
     type: String, // place, genre,profession etc.
-  }
+  },
+  fbname: String,
+  fbgender: String,
+  fbpicture: String,
+  fblocation: String
 
 });
 

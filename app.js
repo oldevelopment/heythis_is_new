@@ -161,12 +161,107 @@ const RootQueryType = new GraphQLObjectType({
         console.log(err, docs);
       })
     },
+    // example resolvers
+    //   moviesResolver(query, args, context, info) {
+    //     http.get("http://movies-backend/v1/movies/list").then { movies ->
+    //       return movies
+    //     }
+    //   }
+
+    //     movieCharactersResolver(movie, args, context, info) {
+    //       id = movie.id
+    // http.get("http://movies-backend/v1/movies/${id}/characters").then { characters ->
+    //         return characters
+    //       }
+    //     }
+
+    //     actorResolver(character, args, context, info) {
+    //       actorId = character.actorId
+    //       http.get("http://actors-backend/v2/actors/${id}").then { actor ->
+    //         return actor
+    //       }
+    //     }
+
+    // getYoutubeContent: {
+    //   type: 'getYoutube',
+    //   description: 'a single youtube call to get the raw data and disperse it for each user',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     user_id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
+    // getFacebookContent: {
+    //   type: 'getFacebook',
+    //   description: 'a single youtube call to get the raw data and disperse it for each user',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
+    // getInstagramContent: {
+    //   type: 'getInstagram',
+    //   description: 'a single youtube call to get the raw data and disperse it for each user',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
+    // getInstagramPermissions: {
+    //   type: 'InstagramPermissions',
+    //   description: 'Get instagram persmissions here',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
+    // getYoutubePermissions: {
+    //   type: 'YoutubePermissions',
+    //   description: 'get youtube permissions here',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
+    // getFacebookPermissions: {
+    //   type: 'getFacebookPermissions',
+    //   description: 'get facebook permissions here ',
+    //   args: {
+    //     id: { type: GraphQLID },
+    //     keyword: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
+    //     // do not use a find one here please look up and use a 3 letter matching system
+    //     console.log(err, docs);
+    //   })
+    // },
   }),
 });
-const KeywordInput = {
-  keyword: String
 
-};
+// const KeywordInput = {
+//   keyword: String
+
+// };
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   description: 'Root Mutation',
@@ -744,14 +839,14 @@ app.get(
     res.redirect(req.session.returnTo || '/');
   }
 );
-app.get('/auth/snapchat', passport.authenticate('snapchat'));
-app.get(
-  '/auth/snapchat/callback',
-  passport.authenticate('snapchat', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
+// app.get('/auth/snapchat', passport.authenticate('snapchat'));
+// app.get(
+//   '/auth/snapchat/callback',
+//   passport.authenticate('snapchat', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   }
+// );
 app.get(
   '/auth/facebook',
   passport.authenticate('facebook', { scope: ['email', 'public_profile'] })
@@ -763,22 +858,22 @@ app.get(
     res.redirect(req.session.returnTo || '/');
   }
 );
-app.get('/auth/github', passport.authenticate('github'));
-app.get(
-  '/auth/github/callback',
-  passport.authenticate('github', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
+// app.get('/auth/github', passport.authenticate('github'));
+// app.get(
+//   '/auth/github/callback',
+//   passport.authenticate('github', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   }
+// );
 app.get(
   '/auth/google',
   passport.authenticate('google', {
     scope: [
       'profile',
       'email',
-      'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/spreadsheets.readonly',
+      'https://www.googleapis.com/auth/youtube.readonly'
+      // 'https://www.googleapis.com/auth/spreadsheets.readonly',
     ],
     accessType: 'offline',
     prompt: 'consent',
@@ -791,86 +886,86 @@ app.get(
     res.redirect(req.session.returnTo || '/');
   }
 );
-app.get('/auth/twitter', passport.authenticate('twitter'));
-app.get(
-  '/auth/twitter/callback',
-  passport.authenticate('twitter', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
-app.get(
-  '/auth/linkedin',
-  passport.authenticate('linkedin', { state: 'SOME STATE' })
-);
-app.get(
-  '/auth/linkedin/callback',
-  passport.authenticate('linkedin', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
-app.get('/auth/twitch', passport.authenticate('twitch', {}));
-app.get(
-  '/auth/twitch/callback',
-  passport.authenticate('twitch', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
+// app.get('/auth/twitter', passport.authenticate('twitter'));
+// app.get(
+//   '/auth/twitter/callback',
+//   passport.authenticate('twitter', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   }
+// );
+// app.get(
+//   '/auth/linkedin',
+//   passport.authenticate('linkedin', { state: 'SOME STATE' })
+// );
+// app.get(
+//   '/auth/linkedin/callback',
+//   passport.authenticate('linkedin', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   }
+// );
+// app.get('/auth/twitch', passport.authenticate('twitch', {}));
+// app.get(
+//   '/auth/twitch/callback',
+//   passport.authenticate('twitch', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   }
+// );
 
 /**
  * OAuth authorization routes. (API examples)
  */
-app.get('/auth/foursquare', passport.authorize('foursquare'));
-app.get(
-  '/auth/foursquare/callback',
-  passport.authorize('foursquare', { failureRedirect: '/api' }),
-  (req, res) => {
-    res.redirect('/api/foursquare');
-  }
-);
-app.get('/auth/tumblr', passport.authorize('tumblr'));
-app.get(
-  '/auth/tumblr/callback',
-  passport.authorize('tumblr', { failureRedirect: '/api' }),
-  (req, res) => {
-    res.redirect('/api/tumblr');
-  }
-);
-app.get('/auth/steam', passport.authorize('openid', { state: 'SOME STATE' }));
-app.get(
-  '/auth/steam/callback',
-  passport.authorize('openid', { failureRedirect: '/api' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo);
-  }
-);
-app.get(
-  '/auth/pinterest',
-  passport.authorize('pinterest', { scope: 'read_public write_public' })
-);
-app.get(
-  '/auth/pinterest/callback',
-  passport.authorize('pinterest', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect('/api/pinterest');
-  }
-);
-app.get(
-  '/auth/quickbooks',
-  passport.authorize('quickbooks', {
-    scope: ['com.intuit.quickbooks.accounting'],
-    state: 'SOME STATE',
-  })
-);
-app.get(
-  '/auth/quickbooks/callback',
-  passport.authorize('quickbooks', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo);
-  }
-);
+// app.get('/auth/foursquare', passport.authorize('foursquare'));
+// app.get(
+//   '/auth/foursquare/callback',
+//   passport.authorize('foursquare', { failureRedirect: '/api' }),
+//   (req, res) => {
+//     res.redirect('/api/foursquare');
+//   }
+// );
+// app.get('/auth/tumblr', passport.authorize('tumblr'));
+// app.get(
+//   '/auth/tumblr/callback',
+//   passport.authorize('tumblr', { failureRedirect: '/api' }),
+//   (req, res) => {
+//     res.redirect('/api/tumblr');
+//   }
+// );
+// app.get('/auth/steam', passport.authorize('openid', { state: 'SOME STATE' }));
+// app.get(
+//   '/auth/steam/callback',
+//   passport.authorize('openid', { failureRedirect: '/api' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo);
+//   }
+// );
+// app.get(
+//   '/auth/pinterest',
+//   passport.authorize('pinterest', { scope: 'read_public write_public' })
+// );
+// app.get(
+//   '/auth/pinterest/callback',
+//   passport.authorize('pinterest', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect('/api/pinterest');
+//   }
+// );
+// app.get(
+//   '/auth/quickbooks',
+//   passport.authorize('quickbooks', {
+//     scope: ['com.intuit.quickbooks.accounting'],
+//     state: 'SOME STATE',
+//   })
+// );
+// app.get(
+//   '/auth/quickbooks/callback',
+//   passport.authorize('quickbooks', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo);
+//   }
+// );
 
 /**
  * Error Handler.

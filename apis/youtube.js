@@ -6,3 +6,7 @@ const getVideos = `https://www.googleapis.com/youtube/v3/playlistItems?part=cont
 the uploadsId for each user should be stored in thier profile */
 
 module.exports = getVideos;
+
+
+// you already have permissions to view once you have logged in
+// please check db ( use compage to see the access tokens)

@@ -194,12 +194,24 @@ facebook login now working
 instagram token accessed   
 :smile:
 
+
+explanation the flow to get insta info
+get permissions but first using at pop up window 
+this gives user token 
+this user token can be exchanged to loglived one 
+and this can be used to make calls to the instagram graph api
+explanation the flow to get FB info
+get permissions but first using at pop up window 
+this gives user token 
+this user token can be exchanged to loglived one 
+and this can be used to make calls to the facebook graph api
 TODO : 
-explain the flow to get insta info
-explain the flow to get FB info
 explain the flow to get youtube info
 
 11th updated keywords query and mutation and allowed keywords to be created from users
 12th updated models to reflect original project.
 user.js portal why ? especially since we have portaljs and portal types ? q for alvinio
 Added various types for facebook instagram and youtube (remember to change google in app.js to store to the youtube object)
+added query and resolver scaffolding for 
+youtube & facebook & instagram permissions
+youtube & facebook & instagram content
