@@ -47,6 +47,7 @@ const userSchema = new Schema({
   pitch: String,
   socialmedia: String, // youtube , facebook, instagramportal
   google: String,
+  googlevideos: [String], // if there is more information you have to create a type for it
   tokens: [],
   // google: {
   //   id: String,
@@ -69,6 +70,7 @@ const userSchema = new Schema({
     created: Date,
     // rawData: Object
   },
+  InstagramContent: [String], // if there is more information you have to create a type for it
   Instagram: {
     id: String,
     name: String,
@@ -80,6 +82,7 @@ const userSchema = new Schema({
     // rawData: Object
   },
   facebookId: String,
+  facebookvideos: [String], // if there is more information you have to create a type for it
   facebook: {
     id: String,
     name: String,

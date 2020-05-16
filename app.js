@@ -162,11 +162,11 @@ const RootQueryType = new GraphQLObjectType({
       })
     },
     // example resolvers
-    //   moviesResolver(query, args, context, info) {
-    //     http.get("http://movies-backend/v1/movies/list").then { movies ->
-    //       return movies
-    //     }
+    // moviesResolver(query, args, context, info) {
+    //   http.get("http://movies-backend/v1/movies/list").then { movies ->
+    //     return movies
     //   }
+    // }
 
     //     movieCharactersResolver(movie, args, context, info) {
     //       id = movie.id
@@ -175,10 +175,19 @@ const RootQueryType = new GraphQLObjectType({
     //       }
     //     }
 
-    //     actorResolver(character, args, context, info) {
-    //       actorId = character.actorId
-    //       http.get("http://actors-backend/v2/actors/${id}").then { actor ->
-    //         return actor
+
+    // After authentication! user uploads folder is needed
+    // youtubeResolver(user, args, context, info) {
+    //   user = user.google
+    //   http.get(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${user.google}&key=${process.env.GOOGLE_ID} HTTP/1.1`).then { uploads ->
+    //     return uploads
+    //   }
+    //     }
+    // use below to get the all the videos from the particular user
+    //     videosResolver(user, args, context, info) {
+    //       user = user.google
+    //       http.get(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${user.uploads}&key=${process.env.GOOGLE_ID} HTTP/1.1`).then { videos ->
+    //         return videos
     //       }
     //     }
 

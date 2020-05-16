@@ -215,3 +215,10 @@ Added various types for facebook instagram and youtube (remember to change googl
 added query and resolver scaffolding for 
 youtube & facebook & instagram permissions
 youtube & facebook & instagram content
+
+16th of may 2020 
+Google
+flow explanation 
+Authentication --> user token -->(permissions) user access token ---> uploadsid --->
+list of videos(object)---> extract 
+
