@@ -173,8 +173,8 @@ const RootQueryType = new GraphQLObjectType({
         // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
       },
       resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        console.log(err, docs);
-        console.log('next step is getchannel');
+        // console.log(err, docs);
+        // console.log('next step is getchannel');
         const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
         // eslint-disable-next-line max-len
         const bearerToken = 'ya29.a0AfH6SMAS2K_78ebqljNJkn1M9L8eKblP0j_ccsqcJ-u4gXpovg7QiGmba7-tGtCbwXNp15JimfYdQIPeVYGSUZ_rvcsuoa6WU0aw1n42zbUqtuFH6L94lfddtgNxufvQr67ZruuQQ-S7E5SfG9gaTT74Sfthzo2Bmng';
@@ -215,21 +215,49 @@ const RootQueryType = new GraphQLObjectType({
           .catch((err) => console.log(err));
 
         console.log('videos', videos);
-        // //   in the line above you should save the
-        // // })
+        /**
+         * TODO: Add videos to the databse.
+         */
+        const query = { _id: args.id };
+        // console.log(query);
+        const a = User.findByIdAndUpdate(query, {
+          firstname: args.firstname,
+          lastname: args.lastname,
+          email: args.email,
+          wachtwoord: args.wachtwoord,
+          companyname: args.companyname,
+          profilepic: args.profilepic,
+          address: args.address,
+          pobox: args.pobox,
+          city: args.city,
+          country: args.country,
+          telephone: args.country,
+          pagetitle: args.pagetitle,
+          pitch: args.pitch,
+          backgroundimage: args.backgroundimage,
+          keywords: args.keywords,
+          profession: args.profession,
+          genre: args.genre,
+          pageRules: args.pageRules,
+          pageContent: args.pageContent,
+          hyperlinks: args.hyperlinks, // fb,youtube,insta
+          pageBuilder: args.pageBuilder,
+          portals: args.portals,
+          socialmedia: args.socialmedia,
+          oauth: args.oauth,
+        }, (err, docs) => {
+          console.log(err, docs);
+        });
+
+        // Above here
       })
-    }
-
-
-    // After authentication! user uploads folder is needed
-
+    },
+    // },
   }),
+
+
 });
 
-// const KeywordInput = {
-//   keyword: String
-
-// };
 const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   description: 'Root Mutation',
