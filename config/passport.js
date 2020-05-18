@@ -408,6 +408,7 @@ const googleStrategyConfig = new GoogleStrategy({
             accessTokenExpires: moment().add(params.expires_in, 'seconds').format(),
             refreshToken,
           }];
+          user.data = profile;
           user.firstname = user.profile.name || profile.displayName;
           user.gender = user.profile.gender || profile._json.gender;
           user.picture = user.profile.picture || profile._json.picture;
@@ -433,6 +434,7 @@ const googleStrategyConfig = new GoogleStrategy({
           const user = new User();
           user.email = profile.emails[0].value;
           user.google = profile.id;
+          user.data = profile;
           user.tokens = [{
             kind: 'google',
             accessToken,

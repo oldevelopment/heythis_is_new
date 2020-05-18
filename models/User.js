@@ -47,8 +47,14 @@ const userSchema = new Schema({
   pitch: String,
   socialmedia: String, // youtube , facebook, instagramportal
   google: String,
+  uploadsId: String,
   googlevideos: [String], // if there is more information you have to create a type for it
-  tokens: [],
+  tokens: [{
+    kind: String,
+    accessToken: String,
+    accessTokenExpires: String,
+    refreshToken: String,
+  }],
   // google: {
   //   id: String,
   //   token: String,
@@ -68,6 +74,7 @@ const userSchema = new Schema({
     username: String,
     sync: Boolean,
     created: Date,
+    uploadsId: String,
     // rawData: Object
   },
   InstagramContent: [String], // if there is more information you have to create a type for it
@@ -106,7 +113,8 @@ const userSchema = new Schema({
   fbname: String,
   fbgender: String,
   fbpicture: String,
-  fblocation: String
+  fblocation: String,
+  data: {}
 
 });
 

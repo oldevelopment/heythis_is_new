@@ -22,6 +22,8 @@ const passport = require('passport');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
+const http = require('http');
+const axios = require('axios');
 
 
 const {
@@ -57,6 +59,7 @@ const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
 const InputSettingsType = require('./graphql-types/InputSettingsType');
 const InputKeywordType = require('./graphql-types/InputKeywordType');
+const youtube = require('./graphql-types/youtube');
 
 
 // const User = require('./models/user-repo.model');
@@ -161,109 +164,65 @@ const RootQueryType = new GraphQLObjectType({
         console.log(err, docs);
       })
     },
-    // example resolvers
-    // moviesResolver(query, args, context, info) {
-    //   http.get("http://movies-backend/v1/movies/list").then { movies ->
-    //     return movies
-    //   }
-    // }
+    youtubeResolver: {
+      type: new GraphQLList(youtube),
+      description: 'A gets video contents of a user',
+      args: {
+        id: { type: GraphQLID },
+        youtubeUploadsID: { type: GraphQLString },
+        // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
+      },
+      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
+        console.log(err, docs);
+        console.log('next step is getchannel');
+        const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
+        // eslint-disable-next-line max-len
+        const bearerToken = 'ya29.a0AfH6SMAS2K_78ebqljNJkn1M9L8eKblP0j_ccsqcJ-u4gXpovg7QiGmba7-tGtCbwXNp15JimfYdQIPeVYGSUZ_rvcsuoa6WU0aw1n42zbUqtuFH6L94lfddtgNxufvQr67ZruuQQ-S7E5SfG9gaTT74Sfthzo2Bmng';
+        // console.log(bearerToken);
+        // axios.defaults.headers.common = { Authorization: `Bearer ${bearerToken}` };
+        const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
+        console.log('ran getChannelID apikey:', apiKey);
+        let channelID = null;
+        await axios.get(getChannelID, { headers: { Authorization: `Bearer ${bearerToken}` } })
+          .then((response) => {
+            channelID = response.data.items[0].id;
+            console.log('channelID', response.data.items[0].id);
+          })
+          .catch((err) => console.log(err));
+        // get uploadsid
 
-    //     movieCharactersResolver(movie, args, context, info) {
-    //       id = movie.id
-    // http.get("http://movies-backend/v1/movies/${id}/characters").then { characters ->
-    //         return characters
-    //       }
-    //     }
+        console.log('User.youtubeUploadsID', User.youtubeUploadsID, process.env.GOOGLE_YOUTUBE_API_KEY);
+        // const getUploadsId = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.youtubeUploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+
+        const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+        let uploadID = null;
+        await axios.get(getUploadID, { headers: { Authorization: `Bearer ${bearerToken}` } })
+          .then((response) => {
+            uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
+            console.log('getUploadID', response.data.items[0].contentDetails.relatedPlaylists.uploads);
+          })
+          .catch((err) => console.log(err));
+
+        // UCjz3P96KY4AqC8z3gKAledg
+        // https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=UUjz3P96KY4AqC8z3gKAledg&key=[YOUR_API_KEY
+        const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+        // const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/videos?key=${process.env.GOOGLE_YOUTUBE_API_KEY}`
+        let videos = [];
+        await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${bearerToken}` } }).then((response) => {
+          // console.log('videoPlaylistURL', response.data);
+          videos = response.data.items;
+        })
+          .catch((err) => console.log(err));
+
+        console.log('videos', videos);
+        // //   in the line above you should save the
+        // // })
+      })
+    }
 
 
     // After authentication! user uploads folder is needed
-    // youtubeResolver(user, args, context, info) {
-    //   user = user.google
-    //   http.get(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${user.google}&key=${process.env.GOOGLE_ID} HTTP/1.1`).then { uploads ->
-    //     return uploads
-    //   }
-    //     }
-    // use below to get the all the videos from the particular user
-    //     videosResolver(user, args, context, info) {
-    //       user = user.google
-    //       http.get(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${user.uploads}&key=${process.env.GOOGLE_ID} HTTP/1.1`).then { videos ->
-    //         return videos
-    //       }
-    //     }
 
-    // getYoutubeContent: {
-    //   type: 'getYoutube',
-    //   description: 'a single youtube call to get the raw data and disperse it for each user',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     user_id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
-    // getFacebookContent: {
-    //   type: 'getFacebook',
-    //   description: 'a single youtube call to get the raw data and disperse it for each user',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
-    // getInstagramContent: {
-    //   type: 'getInstagram',
-    //   description: 'a single youtube call to get the raw data and disperse it for each user',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
-    // getInstagramPermissions: {
-    //   type: 'InstagramPermissions',
-    //   description: 'Get instagram persmissions here',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
-    // getYoutubePermissions: {
-    //   type: 'YoutubePermissions',
-    //   description: 'get youtube permissions here',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
-    // getFacebookPermissions: {
-    //   type: 'getFacebookPermissions',
-    //   description: 'get facebook permissions here ',
-    //   args: {
-    //     id: { type: GraphQLID },
-    //     keyword: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-    //     // do not use a find one here please look up and use a 3 letter matching system
-    //     console.log(err, docs);
-    //   })
-    // },
   }),
 });
 
@@ -523,17 +482,6 @@ const RootMutationType = new GraphQLObjectType({
         });
 
         return args;
-
-        // Portal.save((err, a) => {
-        //   if (err) return console.error(err);
-        //   console.log('after save: ', a);
-        //   // Portal.deleteOne({ _id: args.id }, function (err) {
-        //   //   if (err) return handleError(err);
-        //   //   // deleted at most one portal document
-        //   // });
-        // });
-        // console.log(args);
-        // return portal;
       },
     },
     addKeyword: {
@@ -555,6 +503,57 @@ const RootMutationType = new GraphQLObjectType({
         return keyword;
       },
     },
+    //     getYotubeVideos: {
+    //       type: new GraphQLList(youtube),
+    //       description: 'A gets video contents of a user',
+    //       args: {
+    //         id: { type: GraphQLID },
+    //         accessToken: { type: GraphQLString },
+    //         channelId: { type: GraphQLString },
+    //         uploadsId: { type: GraphQLString },
+    //         // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
+    //       },
+    //       resolve: (parent, args) => {
+    //         const user = {
+    //           id: args.id,
+    //           accessToken: args.accessToken,
+    //           channelId: args.channelId,
+    //           uploadsId: args.uploadsId,
+    //         };
+    //         const query = { _id: args.id };
+    //         console.log(query);
+    //         const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
+    // eslint-disable-next-line max-len
+    //         const bearerToken = 'ya29.a0AfH6SMDDYuZeiKzaIaeqU3u9dP_PA5da5Ib-WmhxMLSOjIIK2lSpbaEQ_aufcwMQ6f2WljKfuLlzXtu8dhd7WizYuMqoxa0VaiiocaFw4CC6DP7i3v7rvlHAOO-76mur9FaboOmpDeHjYyvhsik6tiF1R6LBLcK1F6w';
+    //         axios.defaults.headers.common = { Authorization: `Bearer ${bearerToken}` };
+    //         const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
+    //         // const getUploadsId = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.uploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY} HTTP /1.1`;
+    //         const a = User.findByIdAndUpdate(query, {
+    //           _id: args.id,
+    //           channelId: axios.get(getChannelID).then((response) => {
+    //             console.log(response.data.items[0].id);
+    //           }),
+    //           // uploadsId: axios.get(getUploadsId).then((response) => {
+    //           //   console.log(response.data.items[0].id);
+    //           // })
+    //         }, (err, docs) => {
+    //         // console.log('next step is getchannel');
+
+    //           // console.log(bearerToken);
+
+    //           // console.log('ran getChannelID');
+    //          axios.get(getChannelID).then((response) => console.log(response.data.items[0].id));
+    //           // .catch((err) => console.log(err)));
+    //           // get uploadsid
+
+    //          axios.get(getUploadsId).then((response) => console.log(response.data.items[0].id));
+    //           console.log(err, docs);
+    //         });
+    //         // const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.youtubeUploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY} HTTP /1.1`;
+    //         //   axios.get(url).then((response) => console.log(response));
+    //         //   in the line above you should save the
+    //       }
+    //     }
   }),
 
 });

@@ -219,6 +219,6 @@ youtube & facebook & instagram content
 16th of may 2020 
 Google
 flow explanation 
-Authentication --> user token -->(permissions) user access token ---> uploadsid --->
+Authentication --> user token this will be stored in the db under tokens google access token -->(permissions) user access token ---> take access token and add use it to retrieve channel id  ---> take channel id and use it to retrieve uploads id and uploads has playlist of all the videos 
 list of videos(object)---> extract 
 

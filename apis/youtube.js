@@ -1,4 +1,6 @@
 // [possibly redundant]
+const User = require('../models/User');
+
 const uploadsId = 'UUjz3P96KY4AqC8z3gKAledg'; // this is for questonemc youtube page
 
 const getVideos = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadsId}&key=process.env.GOOGLE_YOUTUBE_API_KEY HTTP/1.1`;
@@ -15,3 +17,9 @@ module.exports = getVideos;
 // const getuploads = () => {
 //  fetch `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${user.google}&key=${process.env.GOOGLE_ID} HTTP/1.1`
 // };
+
+const getChannelId = () => `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${process.env.GOOGLE_YOUTUBE_API_KEY}
+Authorization: Bearer ${User.tokens.google.accesstoken}`;
+
+
+getChannelId();
