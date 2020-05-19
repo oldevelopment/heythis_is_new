@@ -1,35 +1,136 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+// const portal = require('./Portal');
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
-  password: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  emailVerificationToken: String,
-  emailVerified: Boolean,
+const { Schema } = mongoose;
 
-  snapchat: String,
-  facebook: String,
-  twitter: String,
+const userSchema = new Schema({
+
+  local: {
+    username: {
+      type: String, unique: true, sparse: true, trim: true, lowercase: true
+    },
+    password: { type: String },
+    created: String // Date
+  },
+  firstname: String,
+  lastname: String,
+  creationdate: String,
+  name: String,
+  gender: String,
+  picture: String,
+  email: String,
+  title: String,
+  avatar: String,
+  profilepic: String,
+  backgroundImage: String,
+  description: String,
+  profession: String,
+  genre: String,
+  pageRules: String,
+  pageContent: String,
+  hyperlinks: String, // fb,youtube,insta
+  pageBuilder: String,
+  portals: [String],
+  keywords: [{ id: String, keyword: String }],
+  accountInfo: String,
+  accounttype: String,
+  accountstatus: Boolean,
+  companyname: String,
+  address: String,
+  pobox: String,
+  telephone: String,
+  city: String,
+  country: String,
+  pagetitle: String,
+  pitch: String,
+  socialmedia: String, // youtube , facebook, instagramportal
   google: String,
-  github: String,
-  instagram: String,
-  linkedin: String,
-  steam: String,
-  twitch: String,
-  quickbooks: String,
-  tokens: Array,
-
-  profile: {
+  uploadsId: String,
+  googlevideos: [String], // if there is more information you have to create a type for it
+  tokens: [{
+    kind: String,
+    accessToken: String,
+    accessTokenExpires: String,
+    refreshToken: String,
+  }],
+  // google: {
+  //   id: String,
+  //   token: String,
+  //   refreshToken: String,
+  //   username: String,
+  //   name: String,
+  //   sync: Boolean,
+  //   created: Date,
+  //   // rawData: Object
+  // },
+  youtube: {
+    id: String,
     name: String,
-    gender: String,
-    location: String,
-    website: String,
-    picture: String
+    type: String, // place, genre,profession etc.
+    token: String,
+    refreshToken: String,
+    username: String,
+    sync: Boolean,
+    created: Date,
+    uploadsId: String,
+    // rawData: Object
+  },
+  InstagramContent: [String], // if there is more information you have to create a type for it
+  Instagram: {
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+    username: String,
+    token: String,
+    sync: Boolean,
+    created: Date,
+    // rawData: Object
+  },
+  facebookId: String,
+  facebookvideos: [String], // if there is more information you have to create a type for it
+  facebook: {
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+    token: String,
+    longLivedToken: String,
+    username: String,
+    sync: Boolean,
+    created: Date,
+    // rawData: Object
+  },
+  oauth: Boolean,
+  referral: String,
+  ambassadorstatus: Boolean,
+
+  portal: { // why is this portal here ?
+    id: String,
+    name: String,
+    type: String, // place, genre,profession etc.
+  },
+  fbname: String,
+  fbgender: String,
+  fbpicture: String,
+  fblocation: String,
+  channelID: String,
+  uploadID: String,
+  videos: [{
+    _id: String,
+    kind: String,
+    etag: String,
+    object_id: String,
+    contentDetails: {
+      videoId: String,
+      videoPublishedAt: String
+    }
+  }],
+  data: {
+    _id: String,
   }
-}, { timestamps: true });
+
+});
 
 /**
  * Password hash middleware.

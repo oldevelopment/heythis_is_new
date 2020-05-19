@@ -95,6 +95,13 @@ exports.getFacebook = (req, res, next) => {
     });
   });
 };
+/** to get instagram token fire this
+https://api.instagram.com/oauth/authorize
+  ?client_id=681126272459453
+  &redirect_uri=process.ENV.BASE_URL
+  &scope=user_profile,user_media
+  &response_type=code
+ * */
 
 /**
  * GET /api/scraping
