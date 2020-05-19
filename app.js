@@ -22,7 +22,6 @@ const passport = require('passport');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
-const http = require('http');
 const axios = require('axios');
 
 
@@ -59,7 +58,8 @@ const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
 const InputSettingsType = require('./graphql-types/InputSettingsType');
 const InputKeywordType = require('./graphql-types/InputKeywordType');
-const youtube = require('./graphql-types/youtube');
+const InputTokenType = require('./graphql-types/InputTokenType');
+const youtubeVideo = require('./graphql-types/YoutubeVideo');
 
 
 // const User = require('./models/user-repo.model');
@@ -165,23 +165,23 @@ const RootQueryType = new GraphQLObjectType({
       })
     },
     youtubeResolver: {
-      type: new GraphQLList(youtube),
+      type: UserType,
       description: 'A gets video contents of a user',
       args: {
-        id: { type: GraphQLID },
-        youtubeUploadsID: { type: GraphQLString },
+        id: { type: GraphQLString },
+        channelID: { type: GraphQLString },
+        uploadID: { type: GraphQLString },
+        // youtubeUploadsID: { type: GraphQLString },
         // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
       },
       resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        // console.log(err, docs);
-        // console.log('next step is getchannel');
+        console.log('177', docs);
+        console.log('next step is getchannel');
         const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
-        // eslint-disable-next-line max-len
-        const bearerToken = 'ya29.a0AfH6SMAS2K_78ebqljNJkn1M9L8eKblP0j_ccsqcJ-u4gXpovg7QiGmba7-tGtCbwXNp15JimfYdQIPeVYGSUZ_rvcsuoa6WU0aw1n42zbUqtuFH6L94lfddtgNxufvQr67ZruuQQ-S7E5SfG9gaTT74Sfthzo2Bmng';
-        // console.log(bearerToken);
-        // axios.defaults.headers.common = { Authorization: `Bearer ${bearerToken}` };
+        const bearerToken = docs.tokens.map((item) => item.accessToken);
+
         const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
-        console.log('ran getChannelID apikey:', apiKey);
+        // console.log('ran getChannelID ');
         let channelID = null;
         await axios.get(getChannelID, { headers: { Authorization: `Bearer ${bearerToken}` } })
           .then((response) => {
@@ -189,9 +189,9 @@ const RootQueryType = new GraphQLObjectType({
             console.log('channelID', response.data.items[0].id);
           })
           .catch((err) => console.log(err));
-        // get uploadsid
+        // get uploadID
 
-        console.log('User.youtubeUploadsID', User.youtubeUploadsID, process.env.GOOGLE_YOUTUBE_API_KEY);
+        console.log('User.channelID', User.channelID, process.env.GOOGLE_YOUTUBE_API_KEY);
         // const getUploadsId = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.youtubeUploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
 
         const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
@@ -203,13 +203,13 @@ const RootQueryType = new GraphQLObjectType({
           })
           .catch((err) => console.log(err));
 
-        // UCjz3P96KY4AqC8z3gKAledg
+        // UCjz3P96KY4AqC8z3gKAledg --> a channelID
         // https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=UUjz3P96KY4AqC8z3gKAledg&key=[YOUR_API_KEY
         const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
         // const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/videos?key=${process.env.GOOGLE_YOUTUBE_API_KEY}`
         let videos = [];
         await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${bearerToken}` } }).then((response) => {
-          // console.log('videoPlaylistURL', response.data);
+          console.log('videoPlaylistURL', response.data);
           videos = response.data.items;
         })
           .catch((err) => console.log(err));
@@ -218,33 +218,12 @@ const RootQueryType = new GraphQLObjectType({
         /**
          * TODO: Add videos to the databse.
          */
-        const query = { _id: args.id };
-        // console.log(query);
+        const query = { _id: args.id, };
+        console.log('This should be object id', query);
         const a = User.findByIdAndUpdate(query, {
-          firstname: args.firstname,
-          lastname: args.lastname,
-          email: args.email,
-          wachtwoord: args.wachtwoord,
-          companyname: args.companyname,
-          profilepic: args.profilepic,
-          address: args.address,
-          pobox: args.pobox,
-          city: args.city,
-          country: args.country,
-          telephone: args.country,
-          pagetitle: args.pagetitle,
-          pitch: args.pitch,
-          backgroundimage: args.backgroundimage,
-          keywords: args.keywords,
-          profession: args.profession,
-          genre: args.genre,
-          pageRules: args.pageRules,
-          pageContent: args.pageContent,
-          hyperlinks: args.hyperlinks, // fb,youtube,insta
-          pageBuilder: args.pageBuilder,
-          portals: args.portals,
-          socialmedia: args.socialmedia,
-          oauth: args.oauth,
+          channelID,
+          uploadID,
+          videos: [{ youtubeVideo }],
         }, (err, docs) => {
           console.log(err, docs);
         });
@@ -252,7 +231,6 @@ const RootQueryType = new GraphQLObjectType({
         // Above here
       })
     },
-    // },
   }),
 
 
@@ -287,6 +265,7 @@ const RootMutationType = new GraphQLObjectType({
         return user;
       },
     },
+    // update user starts here
     updateUser: {
       type: UserType,
       description: 'Update a  User',
@@ -531,59 +510,97 @@ const RootMutationType = new GraphQLObjectType({
         return keyword;
       },
     },
-    //     getYotubeVideos: {
-    //       type: new GraphQLList(youtube),
-    //       description: 'A gets video contents of a user',
-    //       args: {
-    //         id: { type: GraphQLID },
-    //         accessToken: { type: GraphQLString },
-    //         channelId: { type: GraphQLString },
-    //         uploadsId: { type: GraphQLString },
-    //         // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
-    //       },
-    //       resolve: (parent, args) => {
-    //         const user = {
-    //           id: args.id,
-    //           accessToken: args.accessToken,
-    //           channelId: args.channelId,
-    //           uploadsId: args.uploadsId,
-    //         };
-    //         const query = { _id: args.id };
-    //         console.log(query);
-    //         const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
-    // eslint-disable-next-line max-len
-    //         const bearerToken = 'ya29.a0AfH6SMDDYuZeiKzaIaeqU3u9dP_PA5da5Ib-WmhxMLSOjIIK2lSpbaEQ_aufcwMQ6f2WljKfuLlzXtu8dhd7WizYuMqoxa0VaiiocaFw4CC6DP7i3v7rvlHAOO-76mur9FaboOmpDeHjYyvhsik6tiF1R6LBLcK1F6w';
-    //         axios.defaults.headers.common = { Authorization: `Bearer ${bearerToken}` };
-    //         const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
-    //         // const getUploadsId = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.uploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY} HTTP /1.1`;
-    //         const a = User.findByIdAndUpdate(query, {
-    //           _id: args.id,
-    //           channelId: axios.get(getChannelID).then((response) => {
-    //             console.log(response.data.items[0].id);
-    //           }),
-    //           // uploadsId: axios.get(getUploadsId).then((response) => {
-    //           //   console.log(response.data.items[0].id);
-    //           // })
-    //         }, (err, docs) => {
-    //         // console.log('next step is getchannel');
+    getInstagramPermissions: {
+      type: TokenType,
+      description: 'Add permissions for instagram this will trigger a window to open',
+      args: {
+        id: { type: GraphQLString },
+      },
+      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
+        console.log('next step is getcode');
+        const clientId = process.env.INSTAGRAM_ID;
+        const reDirectInstaUri = process.env.INSTAGRAM_ID_URI;
+        const clientSecret = process.env.INSTAGRAM_SECRET;
+        const instagramRedirectUri = process.env.INSTAGRAM_ID_URI;
+        let code = null;
+        const openAuthWindow = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectInstaUri}&scope=user_profile,user_media&response_type=code`;
+        const getToken = `https://api.instagram.com/oauth/access_token \
+        -F client_id=681126272459453 \
+        -F client_secret=${clientSecret} \
+        -F grant_type=authorization_code \
+        -F redirect_uri=${instagramRedirectUri} \
+        -F code=${code}`;
 
-    //           // console.log(bearerToken);
 
-    //           // console.log('ran getChannelID');
-    //          axios.get(getChannelID).then((response) => console.log(response.data.items[0].id));
-    //           // .catch((err) => console.log(err)));
-    //           // get uploadsid
+        // console.log(openAuthWindow);
+        // this will open a pop up window so #note front-end, the response is based on user input.
+        // if you run this code without user input expect an error
+        await axios.get(openAuthWindow)
+          .then((response) => {
+            code = response.code; // 1st run openAuthWindow in browser
+            axios.post(getToken);
+            // example response
+            // https://4c651e81.ngrok.io/auth/callback?code=AQBNVNdRVZh0oDg_yEIXdW441kS5J6yxLAR2Nss-u1wYiQtuPMwbmNG1zDcT_JhxNbnaBBvT2AqRBnVe1Ro4zaadYfilTxVsuM12bLJSEX7hAEroAR7PnhyWII89sDs-1XmnvUvzTjBMRlAZnB_sjC18sz-1LVidjIHlBiaHmkD2kU15_IdowltEpgX40qE51OHHQyzfdMGzzdDiH5-5gE5ElGY8BOuxy-rDh4j3vYF47w#_
 
-    //          axios.get(getUploadsId).then((response) => console.log(response.data.items[0].id));
-    //           console.log(err, docs);
-    //         });
-    //         // const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.youtubeUploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY} HTTP /1.1`;
-    //         //   axios.get(url).then((response) => console.log(response));
-    //         //   in the line above you should save the
-    //       }
-    //     }
-  }),
+            console.log('code recieved', response.code);
+          })
+          .catch((err) => console.log(err));
+        // get accessToken
+        // eslint-disable-next-line max-len
+        // {"access_token": "IGQVJWUWctb09tNWxobFE0azQ1WUtxM0szODFtclB0SVVqVUJRaXhoYnhmaV9hVURzeXVfRFI5YTZAfSUw0aUVqMTYtRXluY3dvZAWlSMF95ZAUU1dnJFU0RUR3o2enF4Y183TFBOSjVZAQkxZAMnpNVTZAfS29DLVJmaTRpU3VJ", "user_id": 17841400762060616}%
 
+        const token = new InputTokenType({
+          kind: 'Instagram',
+          accessToken: args.accessToken
+        });
+        console.log('Tokens', InputTokenType);
+        token.save((err, a) => {
+          if (err) return console.error(err);
+          console.log('after save: ', a);
+        });
+        console.log(args);
+        return token;
+      }
+      ),
+    },
+    // getFacebookPermissions: {
+    //   type: InputTokenType,
+    //   description: 'Add permissions for facebook this will trigger a window to open',
+    //   args: {
+    //     id: { type: GraphQLString },
+    //   },
+    //   resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
+    //     console.log('next step is getcode');
+    //     const clientId = process.env.FACEBOOK_ID;
+    //     const reDirectFBUri = process.env.FACEBOOK_ID_URI;
+
+    //     const openAuthWindow = `https://api.facebook.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectFBUri}&scope=user_profile,user_media&response_type=code`;
+    //     let code = null;
+    //     // console.log(openAuthWindow);
+    //     // this will open a pop up window so #note front-end
+    //     await axios.get(openAuthWindow)
+    //       .then((response) => {
+    //         code = response.code;
+    //         console.log('code recieved', response.code);
+    //       })
+    //       .catch((err) => console.log(err));
+    //     // get accessToken
+    //     const token = new InputTokenType({
+    //       kind: 'Instagram',
+    //       accessToken: args.accessToken
+    //     });
+    //     console.log('InputTokens', InputTokenType);
+    //     token.save((err, a) => {
+    //       if (err) return console.error(err);
+    //       console.log('after save: ', a);
+    //     });
+    //     console.log(args);
+    //     return token;
+    //   }
+    //   ),
+    // },
+  }
+  )
 });
 
 const schema = new GraphQLSchema({

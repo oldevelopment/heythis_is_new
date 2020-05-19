@@ -114,7 +114,21 @@ const userSchema = new Schema({
   fbgender: String,
   fbpicture: String,
   fblocation: String,
-  data: {}
+  channelID: String,
+  uploadID: String,
+  videos: [{
+    _id: String,
+    kind: String,
+    etag: String,
+    object_id: String,
+    contentDetails: {
+      videoId: String,
+      videoPublishedAt: String
+    }
+  }],
+  data: {
+    _id: String,
+  }
 
 });
 

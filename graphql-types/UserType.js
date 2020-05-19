@@ -1,3 +1,4 @@
+// const mongoose = require('mongoose');
 const {
   GraphQLID,
   GraphQLString,
@@ -14,6 +15,7 @@ const FacebookType = require('./FacebookType');
 const LocalType = require('./LocalType');
 const YoutubeType = require('./YoutubeType');
 const InstagramType = require('./InstagramType');
+const YoutubeVideo = require('./YoutubeVideo');
 
 
 const UserType = new GraphQLObjectType({
@@ -60,6 +62,10 @@ const UserType = new GraphQLObjectType({
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },
     tokens: { type: GraphQLList(TokenType) },
+    channelID: { type: GraphQLString },
+    uploadID: { type: GraphQLString },
+    videos: { type: new GraphQLList(YoutubeVideo) },
+    // data: {},
     users: {
       type: new GraphQLList(UserType),
       resolve: () => User.users.filter((user) => user.userId === user.id),
