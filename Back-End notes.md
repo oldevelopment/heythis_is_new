@@ -227,3 +227,5 @@ authwindow grants permissions(user input) and reutrns code
 code is exchanged for accesstoken 
 and accesstoken is exchanged for longlived token 
 
+TODO:
+add more query examples to back-end md
