@@ -902,7 +902,7 @@ app.get(
 // );
 app.get(
   '/auth/facebook',
-  passport.authenticate('facebook', { scope: ['email', 'public_profile'] })
+  passport.authenticate('facebook', { scope: ['email', 'public_profile', 'manage_pages'] })
 );
 app.get(
   '/auth/facebook/callback',
