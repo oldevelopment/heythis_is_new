@@ -55,9 +55,9 @@ const UserType = new GraphQLObjectType({
     pitch: { type: GraphQLString },
     socialmedia: { type: GraphQLString },
     youtube: { type: (YoutubeType) },
-    Instagram: { type: (InstagramType) },
+    Instagram: { type: InstagramType },
     facebookId: { type: GraphQLString },
-    facebook: { type: FacebookType },
+    facebook: { type: GraphQLList(FacebookType) },
     oauth: { type: GraphQLBoolean },
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
     referral: { type: GraphQLString },
@@ -65,7 +65,7 @@ const UserType = new GraphQLObjectType({
     channelID: { type: GraphQLString },
     uploadID: { type: GraphQLString },
     videos: { type: new GraphQLList(YoutubeVideo) },
-    // data: {},
+    // data: { type: new GraphQLList(GraphQLObjectType) },
     users: {
       type: new GraphQLList(UserType),
       resolve: () => User.users.filter((user) => user.userId === user.id),

@@ -54,9 +54,12 @@ const Keywords = require('./models/Keywords');
 const UserType = require('./graphql-types/UserType');
 const PortalType = require('./graphql-types/PortalType');
 const KeywordType = require('./graphql-types/KeywordType');
+const FacebookType = require('./graphql-types/FacebookType');
+const InputFacebookType = require('./graphql-types/InputFacebookType');
 const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
 const InputSettingsType = require('./graphql-types/InputSettingsType');
+const FacebookPageContentType = require('./graphql-types/FacebookPageContentType');
 const InputKeywordType = require('./graphql-types/InputKeywordType');
 const InputTokenType = require('./graphql-types/InputTokenType');
 const youtubeVideo = require('./graphql-types/YoutubeVideo');
@@ -175,15 +178,17 @@ const RootQueryType = new GraphQLObjectType({
         // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
       },
       resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        console.log('177', docs);
+        // console.log('177', docs);
         console.log('next step is getchannel');
         const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
-        const bearerToken = docs.tokens.map((item) => item.accessToken);
+        // const bearerToken = docs.tokens.map((item) => item.accessToken);
+        const { accessToken } = docs.tokens.find((item) => item.kind === 'google');
+
 
         const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
         // console.log('ran getChannelID ');
         let channelID = null;
-        await axios.get(getChannelID, { headers: { Authorization: `Bearer ${bearerToken}` } })
+        await axios.get(getChannelID, { headers: { Authorization: `Bearer ${accessToken}` } })
           .then((response) => {
             channelID = response.data.items[0].id;
             console.log('channelID', response.data.items[0].id);
@@ -196,7 +201,7 @@ const RootQueryType = new GraphQLObjectType({
 
         const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
         let uploadID = null;
-        await axios.get(getUploadID, { headers: { Authorization: `Bearer ${bearerToken}` } })
+        await axios.get(getUploadID, { headers: { Authorization: `Bearer ${accessToken}` } })
           .then((response) => {
             uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
             console.log('getUploadID', response.data.items[0].contentDetails.relatedPlaylists.uploads);
@@ -208,7 +213,7 @@ const RootQueryType = new GraphQLObjectType({
         const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
         // const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/videos?key=${process.env.GOOGLE_YOUTUBE_API_KEY}`
         let videos = [];
-        await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${bearerToken}` } }).then((response) => {
+        await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${accessToken}` } }).then((response) => {
           console.log('videoPlaylistURL', response.data);
           videos = response.data.items;
         })
@@ -217,6 +222,7 @@ const RootQueryType = new GraphQLObjectType({
         console.log('videos', videos);
         /**
          * TODO: Add videos to the databse.
+         * stefan is this done ?
          */
         const query = { _id: args.id, };
         console.log('This should be object id', query);
@@ -225,7 +231,7 @@ const RootQueryType = new GraphQLObjectType({
           uploadID,
           videos: [{ youtubeVideo }],
         }, (err, docs) => {
-          console.log(err, docs);
+          console.log('Any errors here are problems with saving!', err, docs);
         });
 
         // Above here
@@ -563,42 +569,91 @@ const RootMutationType = new GraphQLObjectType({
       }
       ),
     },
-    // getFacebookPermissions: {
-    //   type: InputTokenType,
-    //   description: 'Add permissions for facebook this will trigger a window to open',
-    //   args: {
-    //     id: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-    //     console.log('next step is getcode');
-    //     const clientId = process.env.FACEBOOK_ID;
-    //     const reDirectFBUri = process.env.FACEBOOK_ID_URI;
+    getFacebookPageID: {
+      type: FacebookType,
+      description: 'Gets all the content we want from facebook once a user has granted permissions',
+      args: {
+        id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        facebook: { type: InputFacebookType }
+      },
+      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
+        console.log('next step is getcontent');
+        // const clientId = process.env.FACEBOOK_ID;
+        // const reDirectFBUri = process.env.FACEBOOK_ID_URI;
+        const { accessToken } = docs.tokens.find((item) => item.kind === 'facebook');
+        const userId = docs.facebookId;
 
-    //     const openAuthWindow = `https://api.facebook.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectFBUri}&scope=user_profile,user_media&response_type=code`;
-    //     let code = null;
-    //     // console.log(openAuthWindow);
-    //     // this will open a pop up window so #note front-end
-    //     await axios.get(openAuthWindow)
-    //       .then((response) => {
-    //         code = response.code;
-    //         console.log('code recieved', response.code);
-    //       })
-    //       .catch((err) => console.log(err));
-    //     // get accessToken
-    //     const token = new InputTokenType({
-    //       kind: 'Instagram',
-    //       accessToken: args.accessToken
-    //     });
-    //     console.log('InputTokens', InputTokenType);
-    //     token.save((err, a) => {
-    //       if (err) return console.error(err);
-    //       console.log('after save: ', a);
-    //     });
-    //     console.log(args);
-    //     return token;
-    //   }
-    //   ),
-    // },
+        console.log(userId);
+        const getFBaccounts = `https://graph.facebook.com/${userId}/accounts?access_token=${accessToken}`;
+        let facebook = null;
+        await axios.get(getFBaccounts)
+          .then((response) => {
+            facebook = response.data.data;
+            // this above line is all the fb pages user has give us access to
+            console.log('facebook', response.data.data);
+            const query = { _id: args.id, };
+            console.log('This should be object id', query);
+            const a = User.findByIdAndUpdate(query, {
+              facebook,
+            }, (err, docs) => {
+              console.log('Any errors here are problems with saving!', err, docs);
+            });
+          })
+          .catch((err) => console.log(err));
+
+
+        return FacebookType;
+      }
+      ),
+    },
+
+    getFacebookPageContent: {
+      type: FacebookType,
+      description: 'Gets all the content we want from facebook once a user has granted permissions',
+      args: {
+        id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        fanCount: { type: GraphQLString },
+      },
+      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
+        console.log('next step is getcontent');
+        // const clientId = process.env.FACEBOOK_ID;
+        // const reDirectFBUri = process.env.FACEBOOK_ID_URI;
+        // const { accessToken } = docs.tokens.find((item) => item.kind === 'facebook');
+        // const accesstoken = 'EAAJvB75X9XsBAESPkZAlPIEkw9GBLfcAyD2DkRKnIPWv
+        // JOoCbqwfUE8qEXjPnOUtKgZA6FcNMqQUoS1LFsfEmQJjdL5bIVBwG6JmXGB5XisVO6CZC1vwETLUUr
+        // G3rrZCFNFZAar0KDUMLLZBNdUDCGDtt7N85FKKcy67ZAeBrwVJwZDZD';= questonemc
+        const accessToken = 'EAAJvB75X9XsBAGLZAYGyCq7ACDjFaZC21HmzyDmUr0ADZASnnzSSj8O2AvXo06BqqH5MBIwMuT6ilxSqJPsXMRoLJk49WZB4ZCLJKIm9rspO74xqkUeBDc3DnZBX1nwmtGr7xa3T92K4O2zhk7kErn9trHlHMqXot2tgPEJ3PdbgZDZD';
+        const userId = docs.facebookId;
+        const fieldsToGet = 'birthday,about,band_members,bio,connected_instagram_account,contact_address,cover,current_location,description,display_subtext,emails,engagement,fan_count,featured_video,founded,general_info,genre,global_brand_page_name,global_brand_root_id,hometown,instagram_business_account,is_community_page,is_owned,is_published,is_webhooks_subscribed,link,location,name,page_token,personal_info,personal_interests,phone,place_type,single_line_address,username,published_posts,videos';
+        const pageId = '1541131422779396';
+        // essential bass = '1541131422779396'
+        // questonemc = '268538378791'
+        console.log(userId);
+        const getAccountContents = `https://graph.facebook.com/${pageId}?fields=${fieldsToGet}&access_token=${accessToken}`;
+        let pageContent = null;
+        await axios.get(getAccountContents)
+          .then((response) => {
+            console.log('this one', response.data);
+            pageContent = response.data;
+            const query = { _id: args.id, };
+            console.log('This should be object id', query); // remember to delete all of these lines
+            const a = User.findByIdAndUpdate(query, {
+              pageContent
+              // fanCount,
+              // id
+            }, (err, docs) => {
+              console.log('Any errors here are problems with saving!', err, docs);
+            });
+          })
+          .catch((err) => console.log(err));
+
+
+        return pageContent;
+      }
+      ),
+    }
   }
   )
 });

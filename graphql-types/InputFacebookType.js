@@ -2,16 +2,16 @@ const {
   //   GraphQLID,
   //   GraphQLInt,
   GraphQLString,
-  GraphQLList,
+  // GraphQLList,
   //   GraphQLNonNull,
   GraphQLBoolean,
-  GraphQLObjectType,
-//   GraphQLInputObjectType
+  // GraphQLObjectType,
+  GraphQLInputObjectType
 } = require('graphql');
-const FacebookPagesType = require('./FacebookPagesType');
+const InputFacebookPagesType = require('./InputFacebookPagesType');
 
-const FacebookType = new GraphQLObjectType({
-  name: 'Facebook',
+const InputFacebookType = new GraphQLInputObjectType({
+  name: 'InputFacebook',
   description: 'This represents the Facebook token you get from a user logging in to a social media',
   fields: () => ({
     id: { type: GraphQLString },
@@ -21,11 +21,13 @@ const FacebookType = new GraphQLObjectType({
     longLivedToken: { type: GraphQLString },
     username: { type: GraphQLString },
     sync: { type: GraphQLBoolean },
-    pages: { type: FacebookPagesType },
+    pages: { type: InputFacebookPagesType },
     created: { type: GraphQLString },
-    data: { type: GraphQLList(FacebookPagesType) },
+    // data: { type: GraphQLList(InputFacebookPagesType) },
 
+    /* this is a list of all the keywords we have and should eventually be
+          populated using alvinios list */
   })
 });
 
-module.exports = FacebookType;
+module.exports = InputFacebookType;
