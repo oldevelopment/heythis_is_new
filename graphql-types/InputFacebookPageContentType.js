@@ -6,11 +6,11 @@ const {
   //   GraphQLList,
   //   GraphQLNonNull,
   GraphQLObjectType,
-//   GraphQLInputObjectType
+  GraphQLInputObjectType
 } = require('graphql');
 
 
-const FacebookPageContentType = new GraphQLObjectType({
+const InputFacebookPageContentType = new GraphQLInputObjectType({
   name: 'FacebookPageContent',
   description: 'this is the contents of the facebook page to be displayed in front end',
   fields: () => ({
@@ -51,19 +51,22 @@ const FacebookPageContentType = new GraphQLObjectType({
     single_line_address: { type: GraphQLString },
     username: { type: GraphQLString },
     published_posts: { type: GraphQLString },
-    // data: { type: GraphQLList(GraphQLObjectType) },
-    // paging: {
-    //   cursors: { type: GraphQLList(GraphQLObjectType) },
-    //   next: String
-    // },
-    // videos: {
-    //   data: { type: GraphQLList(GraphQLObjectType) },
-    //   paging: { cursors: { type: GraphQLList(GraphQLObjectType) }, }
-    // },
+    data: [
+      [GraphQLObjectType]
+    ],
+    paging: {
+      cursors: [GraphQLObjectType],
+      next: String
+    },
+    videos: {
+      data: [[GraphQLObjectType],
+        [GraphQLObjectType]],
+      paging: { cursors: [GraphQLObjectType] }
+    },
 
 
   })
 });
 
 
-module.exports = FacebookPageContentType;
+module.exports = InputFacebookPageContentType;

@@ -2,7 +2,7 @@ const {
   //   GraphQLID,
   //   GraphQLInt,
   GraphQLString,
-  //   GraphQLList,
+  GraphQLList,
   //   GraphQLNonNull,
   //   GraphQLBoolean,
   GraphQLObjectType,
@@ -15,8 +15,9 @@ const FacebookPagesType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLString },
     name: { type: GraphQLString },
-    category: { type: GraphQLString }
-
+    access_token: { type: GraphQLString },
+    category: { type: GraphQLString },
+    tasks: { type: GraphQLList(GraphQLString) },
 
   })
 });

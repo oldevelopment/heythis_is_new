@@ -112,8 +112,13 @@ const userSchema = new Schema({
     }],
     pages: [{
       name: String,
-      id: String
+      id: String,
+      access_token: String,
+      category: String,
+      tasks: ['ANALYZE', 'ADVERTISE', 'MODERATE', 'CREATE_CONTENT', 'MANAGE']
+
     }],
+
 
     pageContent: {
       birthday: String,
@@ -122,12 +127,12 @@ const userSchema = new Schema({
       bio: String,
       connected_instagram_account: String,
       contact_address: String,
-      cover: String,
+      cover: String, // object
       current_location: String,
       description: String,
       display_subtext: String,
       emails: String,
-      engagement: String,
+      engagement: Object,
       fan_count: String,
       featured_video: String,
       founded: String,
@@ -137,25 +142,33 @@ const userSchema = new Schema({
       global_brand_root_id: String,
       hometown: String,
       instagram_business_account: String,
-      is_community_page: String,
-      is_owned: String,
-      is_published: String,
-      is_webhooks_subscribed: String,
+      is_community_page: Boolean,
+      is_owned: Boolean,
+      is_published: Boolean,
+      is_webhooks_subscribed: Boolean,
       link: String,
       location: String,
       name: String,
       page_token: String,
+      username: String,
       personal_info: String,
       personal_interests: String,
       phone: String,
       place_type: String,
       single_line_address: String,
-      username: String,
-      published_posts: String,
-      videos: String
-    }
-    // rawData: Object
-  }],
+    //   data: [
+    //     [Object]
+    //   ],
+    //   paging: {
+    //     cursors: [Object],
+    //     next: String
+    //   },
+    //   videos: { data: [[Object], [Object]], paging: { cursors: [Object] } },
+    },
+
+
+  }
+  ],
   oauth: Boolean,
   referral: String,
   ambassadorstatus: Boolean,

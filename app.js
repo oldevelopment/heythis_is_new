@@ -586,16 +586,16 @@ const RootMutationType = new GraphQLObjectType({
 
         console.log(userId);
         const getFBaccounts = `https://graph.facebook.com/${userId}/accounts?access_token=${accessToken}`;
-        let facebook = null;
+        let pages = null;
         await axios.get(getFBaccounts)
           .then((response) => {
-            facebook = response.data.data;
+            pages = response.data.data;
             // this above line is all the fb pages user has give us access to
-            console.log('facebook', response.data.data);
+            console.log('pages', response.data.data);
             const query = { _id: args.id, };
             console.log('This should be object id', query);
             const a = User.findByIdAndUpdate(query, {
-              facebook,
+              pages,
             }, (err, docs) => {
               console.log('Any errors here are problems with saving!', err, docs);
             });

@@ -9,6 +9,7 @@ const {
 //   GraphQLInputObjectType
 } = require('graphql');
 const FacebookPagesType = require('./FacebookPagesType');
+const FacebookPageContentType = require('./FacebookPageContentType');
 
 const FacebookType = new GraphQLObjectType({
   name: 'Facebook',
@@ -21,9 +22,9 @@ const FacebookType = new GraphQLObjectType({
     longLivedToken: { type: GraphQLString },
     username: { type: GraphQLString },
     sync: { type: GraphQLBoolean },
-    pages: { type: FacebookPagesType },
+    pages: { type: GraphQLList(FacebookPagesType) },
     created: { type: GraphQLString },
-    data: { type: GraphQLList(FacebookPagesType) },
+    data: { type: GraphQLList(FacebookPageContentType) },
 
   })
 });
