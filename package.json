@@ -79,6 +79,7 @@
     "tumblr.js": "^2.0.2",
     "twilio": "^3.39.5",
     "twit": "^2.2.11",
+    "uuid": "^8.1.0",
     "validator": "^12.2.0"
   },
   "devDependencies": {
@@ -88,7 +89,7 @@
     "eslint-plugin-chai-friendly": "^0.5.0",
     "eslint-plugin-import": "^2.20.1",
     "mocha": "^7.1.0",
-    "nodemon": "^2.0.3",
+    "nodemon": "2.0.4",
     "nyc": "^15.0.0",
     "sinon": "^9.0.0",
     "supertest": "^5.0.0-0"

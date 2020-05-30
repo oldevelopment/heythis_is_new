@@ -7,31 +7,31 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema({
 
-  local: {
-    username: {
-      type: String, unique: true, sparse: true, trim: true, lowercase: true
-    },
-    password: { type: String },
-    created: String // Date
-  },
+  email: { type: String, unique: true },
+  password: String,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+  emailVerificationToken: String,
+  emailVerified: Boolean,
+  admin: Boolean,
+
+  facebook: String,
+  google: String,
+  instagram: String,
   firstname: String,
   lastname: String,
   creationdate: String,
   name: String,
-  gender: String,
-  picture: String,
-  email: String,
-  title: String,
-  avatar: String,
-  profilepic: String,
-  backgroundImage: String,
-  description: String,
-  profession: String,
-  genre: String,
-  pageRules: String,
-  pageContent: String,
-  hyperlinks: String, // fb,youtube,insta
-  pageBuilder: String,
+  tokens:
+  [
+    {
+      kind: String,
+      accessToken: String,
+      accessTokenExpires: String,
+      refreshToken: String,
+    }
+  ],
+
   portals: [String],
   keywords: [{ id: String, keyword: String }],
   accountInfo: String,
@@ -46,25 +46,16 @@ const userSchema = new Schema({
   pagetitle: String,
   pitch: String,
   socialmedia: String, // youtube , facebook, instagramportal
-  google: String,
   uploadsId: String,
   googlevideos: [String], // if there is more information you have to create a type for it
-  tokens: [{
-    kind: String,
-    accessToken: String,
-    accessTokenExpires: String,
-    refreshToken: String,
-  }],
-  // google: {
-  //   id: String,
-  //   token: String,
-  //   refreshToken: String,
-  //   username: String,
-  //   name: String,
-  //   sync: Boolean,
-  //   created: Date,
-  //   // rawData: Object
-  // },
+
+  profile: {
+    name: String,
+    gender: String,
+    location: String,
+    website: String,
+    picture: String
+  },
   youtube: {
     id: String,
     name: String,
@@ -77,7 +68,7 @@ const userSchema = new Schema({
     uploadsId: String,
     // rawData: Object
   },
-  InstagramContent: [String], // if there is more information you have to create a type for it
+  instagramContents: [], // if there is more information you have to create a type for it
   Instagram: {
     id: String,
     name: String,
@@ -89,8 +80,30 @@ const userSchema = new Schema({
     // rawData: Object
   },
   facebookId: String,
+  gender: String,
+  picture: String,
+  title: String,
+  avatar: String,
+  profilepic: String,
+  backgroundImage: String,
+  description: String,
+  profession: String,
+  genre: String,
+  pageRules: String,
+  pageContent: String,
+  hyperlinks: String, // fb,youtube,insta
+  pageBuilder: String,
+  facebookpages: [{
+    name: String,
+    id: String,
+    access_token: String,
+    category: String,
+    tasks: ['ANALYZE', 'ADVERTISE', 'MODERATE', 'CREATE_CONTENT', 'MANAGE']
+
+  }],
+  facebookPageContents: [],
   facebookvideos: [String], // if there is more information you have to create a type for it
-  facebook: [{
+  facebookdata: [{
     id: String,
     birthday: String,
     email: String,
@@ -115,7 +128,7 @@ const userSchema = new Schema({
       id: String,
       access_token: String,
       category: String,
-      tasks: ['ANALYZE', 'ADVERTISE', 'MODERATE', 'CREATE_CONTENT', 'MANAGE']
+      tasks: [String]
 
     }],
 
@@ -194,11 +207,13 @@ const userSchema = new Schema({
       videoPublishedAt: String
     }
   }],
+
   data: {
     _id: String,
   }
 
-});
+},
+{ timestamps: true });
 
 /**
  * Password hash middleware.
