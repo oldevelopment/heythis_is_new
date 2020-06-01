@@ -299,58 +299,6 @@ app.get('/auth/instagram/callback', (req, res) => {
     })
     .catch((err) => console.log('ERROR:', err.message));
 });
-// const options = {
-//   method: 'post',
-//   headers: {
-//     'Content-Type': 'application/x-www-form-urlencoded'
-//   },
-//   body: {
-//     client_id: process.env.INSTAGRAM_ID,
-//     client_secret: process.env.INSTAGRAM_SECRET,
-//     grant_type: 'authorization_code',
-//     redirect_uri: redirectUri,
-//     code
-//   },
-//   json: true,
-//   url
-// };
-// console.log('This is that options', options);
-
-// https.request(options, (err, res) => {
-//   console.log('this is the body', res);
-// });
-// process.on('uncaughtException', (err) => {
-//   console.log(err);
-// });
-// // body should look something like this
-// // {
-// //     "access_token": "fb2e77d.47a0479900504cb3ab4a1f626d174d2d",
-// //     "user": {
-// //         "id": "1574083",
-// //         "username": "snoopdogg",
-// //         "full_name": "Snoop Dogg",
-// //         "profile_picture": "..."
-// //     }rre
-// // }
-
-
-// app.get('/auth/instagram2', (req, res, next) =>
-//   request:(
-//     uri: `https://api.instagram.com/oauth/authorize
-//          ?client_id=${process.env.INSTAGRAM_ID}
-//   &redirect_uri=${process.env.INSTAGRAM_ID_URI}
-//   &scope=user_profile,user_media
-//   &response_type=code`)
-//     .then(console.log(res.code)));// console.log('this is the response from insta', response)
-
-// router.get('/auth/instagram2', (req, res, next) => {
-//   request({
-//     uri: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_ID}&redirect_uri=${process.env.INSTAGRAM_ID_URI}&scope=user_profile,user_media&response_type=code`,
-//     // qs: {
-//     //   client id: process.env.INSTAGRAM_ID,
-//     //   query: 'World of Warcraft: Legion'
-//     // }
-//   }).console.log(res);
 
 
 app.get('/auth/facebook',
