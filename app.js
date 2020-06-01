@@ -290,22 +290,23 @@ app.get('/auth/instagram/callback', (req, res) => {
     }
   })
     .then((response) => {
-      const accessToken = response.access_token;
-      console.log('RESPonse', response.access_token);
-      if (req.user) {
-        User.findById(req.user.id, (err, user) => {
-          if (err) { return (err); }
-          // user.instagram = profile.id;
-          user.tokens.push({ kind: 'instagram', accessToken });
-          // user.profile.name = user.profile.name || profile.displayName;
-          // user.profile.picture = user.profile.picture || profile._json.data.profile_picture;
-          // user.profile.website = user.profile.website || profile._json.data.website;
-          user.save((err) => {
-            req.flash('info', { msg: 'Instagram account has been linked.' });
-            console.log(err, user);
-          });
+      // eslint-disable-next-line camelcase
+      const { access_token, user_id } = JSON.parse(response);
+      console.log('RESPonse', response);
+      // eslint-disable-next-line camelcase
+      const accessToken = access_token;
+      console.log('ACCESS_TOKEN', accessToken, typeof (response));
+      User.findById(req.user.id, (err, user) => {
+        if (err) { return (err); }
+        // user.instagram = InstagramId;
+        user.tokens.push({ kind: 'instagram', accessToken: access_token });
+        console.log('this is after push', user.tokens);
+        console.log('ACCESS_TOKEN', accessToken, typeof (response));
+        user.save((err) => {
+          req.flash('info', { msg: 'Instagram account has been linked.' });
+          res.redirect('/account');
         });
-      }
+      });
     });
 });
 // });

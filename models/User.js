@@ -50,6 +50,7 @@ const userSchema = new Schema({
   googlevideos: [String], // if there is more information you have to create a type for it
 
   profile: {
+    id: String,
     name: String,
     gender: String,
     location: String,
@@ -69,7 +70,8 @@ const userSchema = new Schema({
     // rawData: Object
   },
   instagramContents: [], // if there is more information you have to create a type for it
-  Instagram: {
+  InstagramId: String,
+  Instagram2: {
     id: String,
     name: String,
     type: String, // place, genre,profession etc.
