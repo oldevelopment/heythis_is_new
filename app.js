@@ -14,10 +14,12 @@ const ExpressGraphQL = require('express-graphql');
 const compression = require('compression');
 const session = require('express-session');
 // const request = require('request');
+const request = require('request-promise');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const chalk = require('chalk');
 const errorHandler = require('errorhandler');
+const qs = require('querystring');
 const lusca = require('lusca');
 const dotenv = require('dotenv');
 const MongoStore = require('connect-mongo')(session);
@@ -268,28 +270,34 @@ app.get('/auth/instagram/callback', (req, res) => {
   // console.log('this is the code', req.query.code);
 
   const { code } = req.query;
+  const clientId = process.env.INSTAGRAM_ID;
+  const clientSecret = process.env.INSTAGRAM_SECRET;
+
   console.log('this is the code ', code);
   const redirectUri = process.env.INSTAGRAM_ID_URI;
   const url = 'https://api.instagram.com/oauth/access_token';
 
-  axios({
-    method: 'post',
+  const body = {
+    client_id: clientId, client_secret: clientSecret, grant_type: 'authorization_code', redirect_uri: redirectUri, code
+  };
+
+  request({
+    method: 'POST',
+    uri: 'https://api.instagram.com/oauth/access_token',
+    body: qs.stringify(body),
     headers: {
-      'Content-type': 'application/x-www-form-urlencoded',
-    },
-    url,
-    body: {
-      client_id: process.env.INSTAGRAM_ID,
-      client_secret: process.env.INSTAGRAM_SECRET,
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
-      code
-    },
-  }).then((response) => {
-    console.log(response);
-  }, (error) => {
-    console.log(error);
-  });
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  })
+    .then((response) => {
+      const accessToken = response.access_token;
+      console.log('RESPonse', response.access_token);
+      user.tokens.push({ kind: 'instagram', accessToken });
+      user.save((err) => {
+        done(err, user);
+      });
+    })
+    .catch((err) => console.log('ERROR:', err.message));
 });
 // const options = {
 //   method: 'post',
@@ -343,7 +351,7 @@ app.get('/auth/instagram/callback', (req, res) => {
 //     //   query: 'World of Warcraft: Legion'
 //     // }
 //   }).console.log(res);
-// });
+
 
 app.get('/auth/facebook',
   passport.authenticate('facebook', { scope: ['email', 'public_profile', 'manage_pages'] }));
