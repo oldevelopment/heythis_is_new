@@ -6,9 +6,14 @@
  * Module dependencies.
  */
 const express = require('express');
+
+// const router = express.Router();
+const https = require('https');
+// const http = require('http');
 const ExpressGraphQL = require('express-graphql');
 const compression = require('compression');
 const session = require('express-session');
+// const request = require('request');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const chalk = require('chalk');
@@ -244,15 +249,101 @@ app.get('/api/facebook',
 /**
  * OAuth authentication routes. (Sign in)
  */
-app.get('/auth/instagram',
-  // eslint-disable-next-line no-undef
-  // eslint-disable-next-line camelcase
-  passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
-app.get('/auth/instagram/callback',
-  passport.authenticate('instagram', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+// app.get('/auth/instagram3',
+// eslint-disable-next-line no-undef
+// eslint-disable-next-line camelcase
+// passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
+// app.get('/auth/instagram/callback',
+//   passport.authenticate('instagram', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   });
+
+app.get('/auth/instagram', (req, res) => {
+  const clientId = process.env.INSTAGRAM_ID;
+  const redirectUri = process.env.INSTAGRAM_ID_URI;
+  res.redirect(`https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user_profile,user_media&response_type=code`);
+});
+app.get('/auth/instagram/callback', (req, res) => {
+  // console.log('this is the code', req.query.code);
+
+  const { code } = req.query;
+  console.log('this is the code ', code);
+  const redirectUri = process.env.INSTAGRAM_ID_URI;
+  const url = 'https://api.instagram.com/oauth/access_token';
+
+  axios({
+    method: 'post',
+    headers: {
+      'Content-type': 'application/x-www-form-urlencoded',
+    },
+    url,
+    body: {
+      client_id: process.env.INSTAGRAM_ID,
+      client_secret: process.env.INSTAGRAM_SECRET,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+      code
+    },
+  }).then((response) => {
+    console.log(response);
+  }, (error) => {
+    console.log(error);
   });
+});
+// const options = {
+//   method: 'post',
+//   headers: {
+//     'Content-Type': 'application/x-www-form-urlencoded'
+//   },
+//   body: {
+//     client_id: process.env.INSTAGRAM_ID,
+//     client_secret: process.env.INSTAGRAM_SECRET,
+//     grant_type: 'authorization_code',
+//     redirect_uri: redirectUri,
+//     code
+//   },
+//   json: true,
+//   url
+// };
+// console.log('This is that options', options);
+
+// https.request(options, (err, res) => {
+//   console.log('this is the body', res);
+// });
+// process.on('uncaughtException', (err) => {
+//   console.log(err);
+// });
+// // body should look something like this
+// // {
+// //     "access_token": "fb2e77d.47a0479900504cb3ab4a1f626d174d2d",
+// //     "user": {
+// //         "id": "1574083",
+// //         "username": "snoopdogg",
+// //         "full_name": "Snoop Dogg",
+// //         "profile_picture": "..."
+// //     }rre
+// // }
+
+
+// app.get('/auth/instagram2', (req, res, next) =>
+//   request:(
+//     uri: `https://api.instagram.com/oauth/authorize
+//          ?client_id=${process.env.INSTAGRAM_ID}
+//   &redirect_uri=${process.env.INSTAGRAM_ID_URI}
+//   &scope=user_profile,user_media
+//   &response_type=code`)
+//     .then(console.log(res.code)));// console.log('this is the response from insta', response)
+
+// router.get('/auth/instagram2', (req, res, next) => {
+//   request({
+//     uri: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_ID}&redirect_uri=${process.env.INSTAGRAM_ID_URI}&scope=user_profile,user_media&response_type=code`,
+//     // qs: {
+//     //   client id: process.env.INSTAGRAM_ID,
+//     //   query: 'World of Warcraft: Legion'
+//     // }
+//   }).console.log(res);
+// });
 
 app.get('/auth/facebook',
   passport.authenticate('facebook', { scope: ['email', 'public_profile', 'manage_pages'] }));
@@ -593,10 +684,10 @@ const RootMutationType = new GraphQLObjectType({
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
         if (!sessionId) {
-          throw new Error('you are not logged in');
+          console.error('you are not logged in');
         }
         if (sessionId !== args.id || User.admin === false) {
-          throw new Error('you are not authorised');
+          console.error('you are not authorised');
         }
         // const portal = new Portal();
 
@@ -642,53 +733,60 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLString },
       },
-      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        if (!session.userId) {
+      resolve: (parent, args, request) => User.findOne({ _id: args.id }, (err, docs) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        console.log('next step is getcode');
+        if (sessionId !== args.id || User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+        console.log('next step is getinstacode');
         const clientId = process.env.INSTAGRAM_ID;
         const reDirectInstaUri = process.env.INSTAGRAM_ID_URI;
-        const clientSecret = process.env.INSTAGRAM_SECRET;
-        const instagramRedirectUri = process.env.INSTAGRAM_ID_URI;
-        let code = null;
+        // const clientSecret = process.env.INSTAGRAM_SECRET;
+        // const instagramRedirectUri = process.env.INSTAGRAM_ID_URI;
+        // const code = null;
         const openAuthWindow = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectInstaUri}&scope=user_profile,user_media&response_type=code`;
-        const getToken = `https://api.instagram.com/oauth/access_token \
-        -F client_id=681126272459453 \
-        -F client_secret=${clientSecret} \
-        -F grant_type=authorization_code \
-        -F redirect_uri=${instagramRedirectUri} \
-        -F code=${code}`;
+        // const openAuthWindow = 'https://api.instagram.com/oauth/authorize?client_id=681126272459453&redirect_uri=https://33a5a1bfd7c0.ngrok.io/auth/instagram/callback&scope=user_profile,user_media&response_type=code';
+
+        // const getToken = `https://api.instagram.com/oauth/access_token \
+        // -F client_id=681126272459453 \
+        // -F client_secret=${clientSecret} \
+        // -F grant_type=authorization_code \
+        // -F redirect_uri=${instagramRedirectUri} \
+        // -F code=${code}`;
 
 
         // console.log(openAuthWindow);
         // this will open a pop up window so #note front-end, the response is based on user input.
         // if you run this code without user input expect an error
-        await axios.get(openAuthWindow)
+        axios.get(openAuthWindow)
           .then((response) => {
-            code = response.code; // 1st run openAuthWindow in browser
-            axios.post(getToken);
+            console.log('response recieved', response);
+            // code = response.code; // 1st run openAuthWindow in browser
+            // axios.post(getToken);
             // example response
             // https://4c651e81.ngrok.io/auth/callback?code=AQBNVNdRVZh0oDg_yEIXdW441kS5J6yxLAR2Nss-u1wYiQtuPMwbmNG1zDcT_JhxNbnaBBvT2AqRBnVe1Ro4zaadYfilTxVsuM12bLJSEX7hAEroAR7PnhyWII89sDs-1XmnvUvzTjBMRlAZnB_sjC18sz-1LVidjIHlBiaHmkD2kU15_IdowltEpgX40qE51OHHQyzfdMGzzdDiH5-5gE5ElGY8BOuxy-rDh4j3vYF47w#_
 
-            console.log('code recieved', response.code);
+            // console.log('code recieved', response.code);
           })
-          .catch((err) => console.log(err));
+          .catch((err) => console.log('this is the error', err));
         // get accessToken
         // eslint-disable-next-line max-len
         // {"access_token": "IGQVJWUWctb09tNWxobFE0azQ1WUtxM0szODFtclB0SVVqVUJRaXhoYnhmaV9hVURzeXVfRFI5YTZAfSUw0aUVqMTYtRXluY3dvZAWlSMF95ZAUU1dnJFU0RUR3o2enF4Y183TFBOSjVZAQkxZAMnpNVTZAfS29DLVJmaTRpU3VJ", "user_id": 17841400762060616}%
 
-        const token = new InputTokenType({
-          kind: 'Instagram',
-          accessToken: args.accessToken
-        });
-        console.log('Tokens', InputTokenType);
-        token.save((err, a) => {
-          if (err) return console.error(err);
-          console.log('after save: ', a);
-        });
+        // const token = new InputTokenType({
+        //   kind: 'Instagram',
+        //   accessToken: args.accessToken
+        // });
+        // console.log('Tokens', InputTokenType);
+        // token.save((err, a) => {
+        //   if (err) return console.error(err);
+        //   console.log('after save: ', a);
+        // });
         console.log(args);
-        return token;
+        return response;
       }),
     },
     getFacebookPageID: {
