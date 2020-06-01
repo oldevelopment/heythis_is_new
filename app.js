@@ -292,13 +292,23 @@ app.get('/auth/instagram/callback', (req, res) => {
     .then((response) => {
       const accessToken = response.access_token;
       console.log('RESPonse', response.access_token);
-      user.tokens.push({ kind: 'instagram', accessToken });
-      user.save((err) => {
-        done(err, user);
-      });
-    })
-    .catch((err) => console.log('ERROR:', err.message));
+      if (req.user) {
+        User.findById(req.user.id, (err, user) => {
+          if (err) { return (err); }
+          // user.instagram = profile.id;
+          user.tokens.push({ kind: 'instagram', accessToken });
+          // user.profile.name = user.profile.name || profile.displayName;
+          // user.profile.picture = user.profile.picture || profile._json.data.profile_picture;
+          // user.profile.website = user.profile.website || profile._json.data.website;
+          user.save((err) => {
+            req.flash('info', { msg: 'Instagram account has been linked.' });
+            console.log(err, user);
+          });
+        });
+      }
+    });
 });
+// });
 
 
 app.get('/auth/facebook',
