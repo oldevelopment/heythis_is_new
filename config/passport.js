@@ -1,20 +1,12 @@
 /* eslint-disable max-len */
 const passport = require('passport');
 const refresh = require('passport-oauth2-refresh');
-// const axios = require('axios');
-const { Strategy: InstagramStrategy } = require('passport-instagram');
+
+// const { Strategy: InstagramStrategy } = require('passport-instagram');
 const { Strategy: LocalStrategy } = require('passport-local');
 const { Strategy: FacebookStrategy } = require('passport-facebook');
-// const { Strategy: SnapchatStrategy } = require('passport-snapchat');
-// const { Strategy: TwitterStrategy } = require('passport-twitter');
-// const { Strategy: TwitchStrategy } = require('passport-twitch-new');
-// const { Strategy: GitHubStrategy } = require('passport-github2');
 const { OAuth2Strategy: GoogleStrategy } = require('passport-google-oauth');
-// const { Strategy: LinkedInStrategy } = require('passport-linkedin-oauth2');
-// const { Strategy: OpenIDStrategy } = require('passport-openid');
-// const { OAuthStrategy } = require('passport-oauth');
-// const { OAuth2Strategy } = require('passport-oauth');
-// const _ = require('lodash');
+
 const moment = require('moment');
 
 const User = require('../models/User');
@@ -221,57 +213,57 @@ refresh.use('google', googleStrategyConfig);
 
 
 /**
- * Sign in with Instagram.
+ * Sign in with Instagram. !!! Important you cannot use this to sign into instagram please go to app.js and fins /auth/instagram
  */
-passport.use(new InstagramStrategy({
-  clientID: process.env.INSTAGRAM_ID,
-  clientSecret: process.env.INSTAGRAM_SECRET,
-  callbackURL: 'https://33a5a1bfd7c0.ngrok.io/auth/instagram/callback',
-  passReqToCallback: true
-}, (req, accessToken, refreshToken, profile, done) => {
-  if (req.user) {
-    User.findOne({ instagram: profile.id }, (err, existingUser) => {
-      if (err) { return done(err); }
-      if (existingUser) {
-        req.flash('errors', { msg: 'There is already an Instagram account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
-        done(err);
-      } else {
-        User.findById(req.user.id, (err, user) => {
-          if (err) { return done(err); }
-          user.instagram = profile.id;
-          user.tokens.push({ kind: 'instagram', accessToken });
-          user.profile.name = user.profile.name || profile.displayName;
-          user.profile.picture = user.profile.picture || profile._json.data.profile_picture;
-          user.profile.website = user.profile.website || profile._json.data.website;
-          user.save((err) => {
-            req.flash('info', { msg: 'Instagram account has been linked.' });
-            done(err, user);
-          });
-        });
-      }
-    });
-  } else {
-    User.findOne({ instagram: profile.id }, (err, existingUser) => {
-      if (err) { return done(err); }
-      if (existingUser) {
-        return done(null, existingUser);
-      }
-      const user = new User();
-      user.instagram = profile.id;
-      user.tokens.push({ kind: 'instagram', accessToken });
-      user.profile.name = profile.displayName;
-      // Similar to Twitter API, assigns a temporary e-mail address
-      // to get on with the registration process. It can be changed later
-      // to a valid e-mail address in Profile Management.
-      user.email = `${profile.username}@instagram.com`;
-      user.profile.website = profile._json.data.website;
-      user.profile.picture = profile._json.data.profile_picture;
-      user.save((err) => {
-        done(err, user);
-      });
-    });
-  }
-}));
+// passport.use(new InstagramStrategy({
+//   clientID: process.env.INSTAGRAM_ID,
+//   clientSecret: process.env.INSTAGRAM_SECRET,
+//   callbackURL: 'https://33a5a1bfd7c0.ngrok.io/auth/instagram/callback',
+//   passReqToCallback: true
+// }, (req, accessToken, refreshToken, profile, done) => {
+//   if (req.user) {
+//     User.findOne({ instagram: profile.id }, (err, existingUser) => {
+//       if (err) { return done(err); }
+//       if (existingUser) {
+//         req.flash('errors', { msg: 'There is already an Instagram account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
+//         done(err);
+//       } else {
+//         User.findById(req.user.id, (err, user) => {
+//           if (err) { return done(err); }
+//           user.instagram = profile.id;
+//           user.tokens.push({ kind: 'instagram', accessToken });
+//           user.profile.name = user.profile.name || profile.displayName;
+//           user.profile.picture = user.profile.picture || profile._json.data.profile_picture;
+//           user.profile.website = user.profile.website || profile._json.data.website;
+//           user.save((err) => {
+//             req.flash('info', { msg: 'Instagram account has been linked.' });
+//             done(err, user);
+//           });
+//         });
+//       }
+//     });
+//   } else {
+//     User.findOne({ instagram: profile.id }, (err, existingUser) => {
+//       if (err) { return done(err); }
+//       if (existingUser) {
+//         return done(null, existingUser);
+//       }
+//       const user = new User();
+//       user.instagram = profile.id;
+//       user.tokens.push({ kind: 'instagram', accessToken });
+//       user.profile.name = profile.displayName;
+//       // Similar to Twitter API, assigns a temporary e-mail address
+//       // to get on with the registration process. It can be changed later
+//       // to a valid e-mail address in Profile Management.
+//       user.email = `${profile.username}@instagram.com`;
+//       user.profile.website = profile._json.data.website;
+//       user.profile.picture = profile._json.data.profile_picture;
+//       user.save((err) => {
+//         done(err, user);
+//       });
+//     });
+//   }
+// }));
 
 
 /**

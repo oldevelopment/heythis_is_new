@@ -656,10 +656,7 @@ const RootMutationType = new GraphQLObjectType({
         if (sessionId !== args.id || User.admin === false) {
           console.error('you are not authorised');
         }
-        // const portal = new Portal();
 
-
-        // console.log('Portal', portal);
         Portal.deleteOne({ _id: args.id }, (err) => {
           if (err) return console.log(err);
           // deleted at most one portal document
@@ -693,68 +690,6 @@ const RootMutationType = new GraphQLObjectType({
         console.log(args);
         return keyword;
       },
-    },
-    getInstagramPermissions: {
-      type: TokenType,
-      description: 'Add permissions for instagram this will trigger a window to open',
-      args: {
-        id: { type: GraphQLString },
-      },
-      resolve: (parent, args, request) => User.findOne({ _id: args.id }, (err, docs) => {
-        const sessionId = request.session.passport.user;
-        if (!sessionId) {
-          throw new Error('you are not logged in');
-        }
-        if (sessionId !== args.id || User.admin === false) {
-          throw new Error('you are not authorised');
-        }
-        console.log('next step is getinstacode');
-        const clientId = process.env.INSTAGRAM_ID;
-        const reDirectInstaUri = process.env.INSTAGRAM_ID_URI;
-        // const clientSecret = process.env.INSTAGRAM_SECRET;
-        // const instagramRedirectUri = process.env.INSTAGRAM_ID_URI;
-        // const code = null;
-        const openAuthWindow = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectInstaUri}&scope=user_profile,user_media&response_type=code`;
-        // const openAuthWindow = 'https://api.instagram.com/oauth/authorize?client_id=681126272459453&redirect_uri=https://33a5a1bfd7c0.ngrok.io/auth/instagram/callback&scope=user_profile,user_media&response_type=code';
-
-        // const getToken = `https://api.instagram.com/oauth/access_token \
-        // -F client_id=681126272459453 \
-        // -F client_secret=${clientSecret} \
-        // -F grant_type=authorization_code \
-        // -F redirect_uri=${instagramRedirectUri} \
-        // -F code=${code}`;
-
-
-        // console.log(openAuthWindow);
-        // this will open a pop up window so #note front-end, the response is based on user input.
-        // if you run this code without user input expect an error
-        axios.get(openAuthWindow)
-          .then((response) => {
-            console.log('response recieved', response);
-            // code = response.code; // 1st run openAuthWindow in browser
-            // axios.post(getToken);
-            // example response
-            // https://4c651e81.ngrok.io/auth/callback?code=AQBNVNdRVZh0oDg_yEIXdW441kS5J6yxLAR2Nss-u1wYiQtuPMwbmNG1zDcT_JhxNbnaBBvT2AqRBnVe1Ro4zaadYfilTxVsuM12bLJSEX7hAEroAR7PnhyWII89sDs-1XmnvUvzTjBMRlAZnB_sjC18sz-1LVidjIHlBiaHmkD2kU15_IdowltEpgX40qE51OHHQyzfdMGzzdDiH5-5gE5ElGY8BOuxy-rDh4j3vYF47w#_
-
-            // console.log('code recieved', response.code);
-          })
-          .catch((err) => console.log('this is the error', err));
-        // get accessToken
-        // eslint-disable-next-line max-len
-        // {"access_token": "IGQVJWUWctb09tNWxobFE0azQ1WUtxM0szODFtclB0SVVqVUJRaXhoYnhmaV9hVURzeXVfRFI5YTZAfSUw0aUVqMTYtRXluY3dvZAWlSMF95ZAUU1dnJFU0RUR3o2enF4Y183TFBOSjVZAQkxZAMnpNVTZAfS29DLVJmaTRpU3VJ", "user_id": 17841400762060616}%
-
-        // const token = new InputTokenType({
-        //   kind: 'Instagram',
-        //   accessToken: args.accessToken
-        // });
-        // console.log('Tokens', InputTokenType);
-        // token.save((err, a) => {
-        //   if (err) return console.error(err);
-        //   console.log('after save: ', a);
-        // });
-        console.log(args);
-        return response;
-      }),
     },
     getFacebookPageID: {
       type: FacebookType,
@@ -822,9 +757,8 @@ const RootMutationType = new GraphQLObjectType({
           const fbpageContent = await axios.get(getAccountContents);
 
           user.facebookPageContents = fbpageContent.data;
-          // console.log('this is before save ', user.facebookPageContents);
+
           await user.save();
-          // console.log('this is after save ', user.facebookPageContents);
         } catch (e) {
           console.log(e);
         }
@@ -914,7 +848,7 @@ const RootMutationType = new GraphQLObjectType({
             })
             .catch((err) => console.log(err));
           const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
-          // const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/videos?key=${process.env.GOOGLE_YOUTUBE_API_KEY}`
+
           let videos = [];
           await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${accessToken}` } }).then((response) => {
             console.log('videoPlaylistURL', response.data);
