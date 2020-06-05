@@ -6,7 +6,7 @@
  * Module dependencies.
  */
 const express = require('express');
-
+const cron = require('node-cron');
 // const router = express.Router();
 const https = require('https');
 // const http = require('http');
@@ -72,6 +72,7 @@ const FacebookPageContentType = require('./graphql-types/FacebookPageContentType
 const InputKeywordType = require('./graphql-types/InputKeywordType');
 const InputTokenType = require('./graphql-types/InputTokenType');
 const youtubeVideo = require('./graphql-types/YoutubeVideo');
+const syncContents = require('./cron');
 
 
 // const User = require('./models/user-repo.model');
@@ -296,12 +297,38 @@ app.get('/auth/instagram/callback', (req, res) => {
       // eslint-disable-next-line camelcase
       const accessToken = access_token;
       console.log('ACCESS_TOKEN', accessToken, typeof (response));
+      const getLongLivedToken = ` https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${clientSecret}&access_token=${accessToken}`;
+      const { longLivedToken, expiresIn } = axios.get(getLongLivedToken)
+        .then((response) => {
+          console.log('this is the longlived token', response.data);
+          const { access_token: longLivedToken, expires: expiresIn } = response.data;
+          console.log('this is the long lived token', longLivedToken, expiresIn);
+          User.findById(req.user.id, (err, user) => {
+            if (err) { return (err); }
+            // eslint-disable-next-line camelcase
+            user.profile.instagram = user_id;
+            user.tokens.push({
+              kind: 'instagram', longLivedToken, expiresIn
+            });
+            console.log('this is longlived pushed');
+            user.save((err) => {
+              console.log('successfully added longlivedtoken');
+            });
+          });
+
+          // user.token.instagram.longLivedToken = longLivedToken;
+          // user.token.instagram.expiresIn = expires;
+        });
+      console.log('this is the long lived token 2nd line', longLivedToken, expiresIn);
       User.findById(req.user.id, (err, user) => {
         if (err) { return (err); }
-        // user.instagram = InstagramId;
-        user.tokens.push({ kind: 'instagram', accessToken: access_token });
-        console.log('this is after push', user.tokens);
-        console.log('ACCESS_TOKEN', accessToken, typeof (response));
+        // eslint-disable-next-line camelcase
+        user.profile.instagram = user_id;
+        user.tokens.push({
+          kind: 'instagram', accessToken: access_token, instagramId: user_id, longLivedToken, expiresIn
+        });
+        console.log('this is after push');
+        // console.log('ACCESS_TOKEN', accessToken, typeof (response));
         user.save((err) => {
           req.flash('info', { msg: 'Instagram account has been linked.' });
           res.redirect('/account');
@@ -480,7 +507,7 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           throw new Error('you are not authorised');
         }
         const user = {
@@ -538,7 +565,7 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           throw new Error('you are not authorised');
         }
         User.deleteOne({ _id: args.id }, (err) => {
@@ -568,7 +595,7 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (User.admin === false) {
           throw new Error('you are not authorised');
         }
 
@@ -653,7 +680,7 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           console.error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           console.error('you are not authorised');
         }
 
@@ -676,9 +703,9 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
-          throw new Error('you are not authorised');
-        }
+        // if (sessionId !== args.id || User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         const keyword = new Keywords({
           keyword: args.keyword,
         });
@@ -700,21 +727,20 @@ const RootMutationType = new GraphQLObjectType({
         facebook: { type: InputFacebookType }
       },
       resolve: async (parent, args, request) => {
-        console.log(session.session);
         const sessionId = request.session.passport.user;
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           throw new Error('you are not authorised');
         }
         try {
           // get user
           const user = await User.findById(args.id);
           const { accessToken } = user.tokens.find((item) => item.kind === 'facebook');
-          const userId = user.facebookId;
+          const userId = user.facebook;
           const getFBaccounts = `https://graph.facebook.com/${userId}/accounts?access_token=${accessToken}`;
-
+          console.log('this is the accesstoken', accessToken, userId);
           // get pages
           const fbResponse = await axios.get(getFBaccounts);
 
@@ -739,9 +765,14 @@ const RootMutationType = new GraphQLObjectType({
         fanCount: { type: GraphQLString },
         pageName: { type: GraphQLString },
       },
-      resolve: async (parent, args) => {
-        if (!session.userId) {
+      resolve: async (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        console.log(sessionId);
+        if (!sessionId) {
           throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
         }
         try {
           console.log('next step is getcontent');
@@ -778,37 +809,36 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           throw new Error('you are not authorised');
         }
         try {
           console.log('next step is getcontent');
           const user = await User.findById(args.id);
-          const { pageName } = args;
-          // eslint-disable-next-line camelcase
-          const { access_token } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
-          const { id } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
-          console.log(pageName, access_token, id);
-          const fieldsToGet = 'id,caption,media_type,media_url,permalink,thumbnail_url,username,timestamp,username,children';
 
-          // eslint-disable-next-line camelcase
-          const getAccountContents = `https://graph.instagram.com/me/media?fields=${fieldsToGet}&access_token=${access_token}`;
+          const { accessToken } = user.tokens.find((item) => item.kind === 'instagram');
+          // console.log(accessToken);
+          const fieldsToGet = 'id,account_type,media_count,username,media';
+
+          const getAccountContents = `https://graph.instagram.com/me?fields=${fieldsToGet}&access_token=${accessToken}`;
           //         `https://graph.instagram.com/{media-id}?fields=${fieldsToGet}&access_token=${access_token}`;
           // `https://graph.instagram.com/me/media?fields=${fieldsToGet}&access_token=${access_token}`
+          console.log(getAccountContents);
           const instaPageContent = await axios.get(getAccountContents);
+          console.log(instaPageContent);
 
           user.instagramContents = instaPageContent.data;
           // console.log('this is before save ', user.instagramContents);
           await user.save();
           // console.log('this is after save ', user.instagramContents);
         } catch (e) {
-          console.log(e);
+          // console.log(e);
         }
       }
     },
-    youtubeResolver: {
+    getYoutubeContents: {
       type: UserType,
-      description: 'A gets video contents of a user',
+      description: 'A gets youtube video contents of a user',
       args: {
         id: { type: GraphQLString },
         channelID: { type: GraphQLString },
@@ -820,7 +850,7 @@ const RootMutationType = new GraphQLObjectType({
         if (!sessionId) {
           throw new Error('you are not logged in');
         }
-        if (sessionId !== args.id || User.admin === false) {
+        if (sessionId !== args.id && User.admin === false) {
           throw new Error('you are not authorised');
         }
         try {
@@ -857,7 +887,7 @@ const RootMutationType = new GraphQLObjectType({
             .catch((err) => console.log(err));
 
           console.log('videos', videos);
-          user.youtubeContents = videos;
+          user.videos = videos;
           // console.log('this is before save ', user.instagramContents);
           await user.save();
           // console.log('this is after save ', user.instagramContents);
@@ -882,6 +912,13 @@ app.use('/graphql',
   }));
 
 // ----------------------Express config to be adjusted after graphql works------------------------//
+// ----------------------Express cronjob  starts ------------------------//
+cron.schedule('59 23 * * * ', () => {
+  console.log('if you see this you know that the cron is running');
+  syncContents();
+});
+app.listen(3128);
+// ----------------------Express cronjob ends ------------------------//
 
 /**
  * Error Handler.

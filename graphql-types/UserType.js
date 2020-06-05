@@ -60,6 +60,7 @@ const UserType = new GraphQLObjectType({
     facebook: { type: GraphQLList(FacebookType) },
     oauth: { type: GraphQLBoolean },
     ambassadorstatus: { type: GraphQLBoolean }, // checks if this user is an ambassador
+    admin: { type: GraphQLBoolean }, // checks if this user admin
     referral: { type: GraphQLString },
     tokens: { type: GraphQLList(TokenType) },
     channelID: { type: GraphQLString },

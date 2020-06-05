@@ -1,9 +1,9 @@
 const {
-  GraphQLID,
+  // GraphQLID,
   // GraphQLInt,
   GraphQLString,
   GraphQLList,
-  GraphQLNonNull,
+  // GraphQLNonNull,
   GraphQLObjectType,
 } = require('graphql');
 // const User = require('../models/User');
@@ -20,7 +20,7 @@ const PortalType = new GraphQLObjectType({
   name: 'Portal',
   description: 'This represents a Portal and everything about it complete',
   fields: () => ({
-    id: { type: GraphQLNonNull(GraphQLID) },
+    id: { type: GraphQLString },
     settings: { type: SettingsType }, // todo: resolve issues with nested settingstypes
     layout: { type: GraphQLString },
     members: { type: GraphQLString },

@@ -29,6 +29,7 @@ const userSchema = new Schema({
       accessToken: String,
       accessTokenExpires: String,
       refreshToken: String,
+      longLivedToken: String,
     }
   ],
 
@@ -55,7 +56,9 @@ const userSchema = new Schema({
     gender: String,
     location: String,
     website: String,
-    picture: String
+    picture: String,
+    facebook: String,
+    instagram: String,
   },
   youtube: {
     id: String,
