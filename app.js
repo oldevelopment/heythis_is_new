@@ -361,7 +361,7 @@ app.get('/auth/facebook',
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+    res.redirect('/');
   });
 
 app.get('/auth/google',
@@ -378,7 +378,7 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+    res.redirect('/');
   });
 
 // ________________________________________graphql starts here_________________________________
