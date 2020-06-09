@@ -103,8 +103,38 @@ to query a user
     }
   }
 }
-
+to query a user's youtube videos if they are already in the system ( assumming the cron job is running and this is an existing user)
+{
+  user(id: "5ed636f8b123d5536004f3e8") {
+    id
+    email
+    videos {
+      contentDetails {
+        videoId
+      }
+    }
+    keywords {
+      keyword
+    }
+  }
 }
+
+to query a portal 
+{
+  portal(id: "portal id#") {
+    
+    name
+  }
+}
+to query a list of portals 
+{
+  portals{
+    type
+    name
+    typeof2
+  }
+}
+
 to query a list of users 
 {
   users {
@@ -162,6 +192,12 @@ mutation {
     keywords {
       keyword
     }
+  }
+}
+
+mutation{
+  getFacebookPageContent(id:"5ed636f8b123d5536004f3e8",pageName:"essential bass"){
+    id
   }
 }
 
@@ -227,5 +263,7 @@ authwindow grants permissions(user input) and reutrns code
 code is exchanged for accesstoken 
 and accesstoken is exchanged for longlived token 
 
-TODO:
-add more query examples to back-end md
+TODO
+it seems that if you add instagram first it gets deleted mostly by google 
+
+

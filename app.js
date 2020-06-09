@@ -1,17 +1,25 @@
+/* eslint-disable no-undef */
 
 /* eslint-disable no-unused-vars */
-/* eslint-disable function-paren-newline */
+
 /**
  * Module dependencies.
  */
 const express = require('express');
+const cron = require('node-cron');
+// const router = express.Router();
+const https = require('https');
+// const http = require('http');
 const ExpressGraphQL = require('express-graphql');
 const compression = require('compression');
 const session = require('express-session');
+// const request = require('request');
+const request = require('request-promise');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const chalk = require('chalk');
 const errorHandler = require('errorhandler');
+const qs = require('querystring');
 const lusca = require('lusca');
 const dotenv = require('dotenv');
 const MongoStore = require('connect-mongo')(session);
@@ -54,12 +62,17 @@ const Keywords = require('./models/Keywords');
 const UserType = require('./graphql-types/UserType');
 const PortalType = require('./graphql-types/PortalType');
 const KeywordType = require('./graphql-types/KeywordType');
+const FacebookType = require('./graphql-types/FacebookType');
+const InstagramType = require('./graphql-types/InstagramType');
+const InputFacebookType = require('./graphql-types/InputFacebookType');
 const SettingsType = require('./graphql-types/SettingsType');
 const TokenType = require('./graphql-types/TokenType');
 const InputSettingsType = require('./graphql-types/InputSettingsType');
+const FacebookPageContentType = require('./graphql-types/FacebookPageContentType');
 const InputKeywordType = require('./graphql-types/InputKeywordType');
 const InputTokenType = require('./graphql-types/InputTokenType');
 const youtubeVideo = require('./graphql-types/YoutubeVideo');
+const syncContents = require('./cron');
 
 
 // const User = require('./models/user-repo.model');
@@ -91,12 +104,269 @@ mongoose.set('useUnifiedTopology', true);
 mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.on('error', (err) => {
   console.error(err);
-  console.log(
-    '%s MongoDB connection error. Please make sure MongoDB is running.',
-    chalk.red('✗')
-  );
+  console.log('%s MongoDB connection error. Please make sure MongoDB is running.',
+    chalk.red('✗'));
   process.exit();
 });
+
+// ____________________express stuff _______________________________________________________________
+
+/**
+ * Express configuration.
+ */
+app.set('host', process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0');
+app.set('port', process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+app.use(expressStatusMonitor());
+app.use(compression());
+app.use(sass({
+  src: path.join(__dirname, 'public'),
+  dest: path.join(__dirname, 'public'),
+}));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+
+  resave: true,
+  saveUninitialized: true,
+  secret: process.env.SESSION_SECRET,
+  cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
+  store: new MongoStore({
+    url: process.env.MONGODB_URI,
+    autoReconnect: true,
+  }),
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+// app.use((req, res, next) => {
+//   if (req.path === '/api/upload') {
+//     // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
+//     next();
+//   } else {
+//     lusca.csrf()(req, res, next);
+//   }
+// });
+app.use(lusca.xframe('SAMEORIGIN'));
+app.use(lusca.xssProtection(true));
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.locals.user = req.user;
+  next();
+});
+app.use((req, res, next) => {
+  // After successful login, redirect back to the intended page
+  if (
+    !req.user
+    && req.path !== '/login'
+    && req.path !== '/signup'
+    && !req.path.match(/^\/auth/)
+    && !req.path.match(/\./)
+  ) {
+    req.session.returnTo = req.originalUrl;
+  } else if (
+    req.user
+    && (req.path === '/account' || req.path.match(/^\/api/))
+  ) {
+    req.session.returnTo = req.originalUrl;
+  }
+  next();
+});
+app.use('/',
+  express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+app.use('/js/lib',
+  express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
+    maxAge: 31557600000,
+  }));
+app.use('/js/lib',
+  express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
+    maxAge: 31557600000,
+  }));
+app.use('/js/lib',
+  express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
+    maxAge: 31557600000,
+  }));
+app.use('/js/lib',
+  express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
+    maxAge: 31557600000,
+  }));
+app.use('/webfonts',
+  express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
+    { maxAge: 31557600000 }));
+
+/**
+ * Primary app routes.
+ */
+app.get('/', homeController.index);
+app.get('/login', userController.getLogin);
+app.post('/login', userController.postLogin);
+app.get('/logout', userController.logout);
+app.get('/forgot', userController.getForgot);
+app.post('/forgot', userController.postForgot);
+app.get('/reset/:token', userController.getReset);
+app.post('/reset/:token', userController.postReset);
+app.get('/signup', userController.getSignup);
+app.post('/signup', userController.postSignup);
+app.get('/contact', contactController.getContact);
+app.post('/contact', contactController.postContact);
+app.get('/account/verify',
+  passportConfig.isAuthenticated,
+  userController.getVerifyEmail);
+app.get('/account/verify/:token',
+  passportConfig.isAuthenticated,
+  userController.getVerifyEmailToken);
+app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
+app.post('/account/profile',
+  passportConfig.isAuthenticated,
+  userController.postUpdateProfile);
+app.post('/account/password',
+  passportConfig.isAuthenticated,
+  userController.postUpdatePassword);
+app.post('/account/delete',
+  passportConfig.isAuthenticated,
+  userController.postDeleteAccount);
+app.get('/account/unlink/:provider',
+  passportConfig.isAuthenticated,
+  userController.getOauthUnlink);
+
+/**
+ * API examples routes.
+ */
+app.get('/api', apiController.getApi);
+
+app.get('/api/facebook',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getFacebook);
+
+// app.get(
+//   '/api/instagram',
+//   passportConfig.isAuthenticated,
+//   passportConfig.isAuthorized,
+//   apiController.getInstagram
+// );
+
+
+/**
+ * OAuth authentication routes. (Sign in)
+ */
+// app.get('/auth/instagram3',
+// eslint-disable-next-line no-undef
+// eslint-disable-next-line camelcase
+// passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
+// app.get('/auth/instagram/callback',
+//   passport.authenticate('instagram', { failureRedirect: '/login' }),
+//   (req, res) => {
+//     res.redirect(req.session.returnTo || '/');
+//   });
+
+app.get('/auth/instagram', (req, res) => {
+  const clientId = process.env.INSTAGRAM_ID;
+  const redirectUri = process.env.INSTAGRAM_ID_URI;
+  res.redirect(`https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user_profile,user_media&response_type=code`);
+});
+app.get('/auth/instagram/callback', (req, res) => {
+  // console.log('this is the code', req.query.code);
+
+  const { code } = req.query;
+  const clientId = process.env.INSTAGRAM_ID;
+  const clientSecret = process.env.INSTAGRAM_SECRET;
+
+  console.log('this is the code ', code);
+  const redirectUri = process.env.INSTAGRAM_ID_URI;
+  const url = 'https://api.instagram.com/oauth/access_token';
+
+  const body = {
+    client_id: clientId, client_secret: clientSecret, grant_type: 'authorization_code', redirect_uri: redirectUri, code
+  };
+
+  request({
+    method: 'POST',
+    uri: 'https://api.instagram.com/oauth/access_token',
+    body: qs.stringify(body),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  })
+    .then((response) => {
+      // eslint-disable-next-line camelcase
+      const { access_token, user_id } = JSON.parse(response);
+      console.log('RESPonse', response);
+      // eslint-disable-next-line camelcase
+      const accessToken = access_token;
+      console.log('ACCESS_TOKEN', accessToken, typeof (response));
+      const getLongLivedToken = ` https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${clientSecret}&access_token=${accessToken}`;
+      const { longLivedToken, expiresIn } = axios.get(getLongLivedToken)
+        .then((response) => {
+          console.log('this is the longlived token', response.data);
+          const { access_token: longLivedToken, expires: expiresIn } = response.data;
+          console.log('this is the long lived token', longLivedToken, expiresIn);
+          User.findById(req.user.id, (err, user) => {
+            if (err) { return (err); }
+            // eslint-disable-next-line camelcase
+            user.profile.instagram = user_id;
+            user.tokens.push({
+              kind: 'instagram', longLivedToken, expiresIn
+            });
+            console.log('this is longlived pushed');
+            user.save((err) => {
+              console.log('successfully added longlivedtoken');
+            });
+          });
+
+          // user.token.instagram.longLivedToken = longLivedToken;
+          // user.token.instagram.expiresIn = expires;
+        });
+      console.log('this is the long lived token 2nd line', longLivedToken, expiresIn);
+      User.findById(req.user.id, (err, user) => {
+        if (err) { return (err); }
+        // eslint-disable-next-line camelcase
+        user.profile.instagram = user_id;
+        user.tokens.push({
+          kind: 'instagram', accessToken: access_token, instagramId: user_id, longLivedToken, expiresIn
+        });
+        console.log('this is after push');
+        // console.log('ACCESS_TOKEN', accessToken, typeof (response));
+        user.save((err) => {
+          req.flash('info', { msg: 'Instagram account has been linked.' });
+          res.redirect('/account');
+        });
+      });
+    });
+});
+// });
+
+
+app.get('/auth/facebook',
+  passport.authenticate('facebook', { scope: ['email', 'public_profile', 'manage_pages'] }));
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  });
+
+app.get('/auth/google',
+  passport.authenticate('google', {
+    scope: [
+      'profile',
+      'email',
+      'https://www.googleapis.com/auth/youtube.readonly'
+      // 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    ],
+    accessType: 'offline',
+    prompt: 'consent',
+  }));
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  });
+
+
+// ________________________________________graphql starts here_________________________________
+
 
 // instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({
@@ -110,7 +380,6 @@ const RootQueryType = new GraphQLObjectType({
         id: { type: GraphQLID },
       },
       resolve: (parent, args) => Portal.findOne({ _id: args.id }, (err, docs) => {
-        // docs.forEach
         console.log(err, docs);
       })
     },
@@ -118,7 +387,6 @@ const RootQueryType = new GraphQLObjectType({
       type: new GraphQLList(PortalType),
       description: 'List of all portals',
       resolve: () => Portal.find({}, (err, docs) => {
-        // docs.forEach
         console.log(err, docs);
       })
     },
@@ -140,8 +408,8 @@ const RootQueryType = new GraphQLObjectType({
         id: { type: GraphQLID },
       },
       resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
-        // docs.forEach;
-        console.log(err, docs);
+
+        // console.log(err, docs);
       })
     },
     keyword: {
@@ -162,73 +430,6 @@ const RootQueryType = new GraphQLObjectType({
       resolve: () => Keywords.find({}, (err, docs) => {
         // docs.forEach
         console.log(err, docs);
-      })
-    },
-    youtubeResolver: {
-      type: UserType,
-      description: 'A gets video contents of a user',
-      args: {
-        id: { type: GraphQLString },
-        channelID: { type: GraphQLString },
-        uploadID: { type: GraphQLString },
-        // youtubeUploadsID: { type: GraphQLString },
-        // GOOGLE_YOUTUBE_API_KEY: process.env.GOOGLE_YOUTUBE_API_KEY
-      },
-      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        console.log('177', docs);
-        console.log('next step is getchannel');
-        const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
-        const bearerToken = docs.tokens.map((item) => item.accessToken);
-
-        const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
-        // console.log('ran getChannelID ');
-        let channelID = null;
-        await axios.get(getChannelID, { headers: { Authorization: `Bearer ${bearerToken}` } })
-          .then((response) => {
-            channelID = response.data.items[0].id;
-            console.log('channelID', response.data.items[0].id);
-          })
-          .catch((err) => console.log(err));
-        // get uploadID
-
-        console.log('User.channelID', User.channelID, process.env.GOOGLE_YOUTUBE_API_KEY);
-        // const getUploadsId = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${User.youtubeUploadsID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
-
-        const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
-        let uploadID = null;
-        await axios.get(getUploadID, { headers: { Authorization: `Bearer ${bearerToken}` } })
-          .then((response) => {
-            uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
-            console.log('getUploadID', response.data.items[0].contentDetails.relatedPlaylists.uploads);
-          })
-          .catch((err) => console.log(err));
-
-        // UCjz3P96KY4AqC8z3gKAledg --> a channelID
-        // https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=UUjz3P96KY4AqC8z3gKAledg&key=[YOUR_API_KEY
-        const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
-        // const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/videos?key=${process.env.GOOGLE_YOUTUBE_API_KEY}`
-        let videos = [];
-        await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${bearerToken}` } }).then((response) => {
-          console.log('videoPlaylistURL', response.data);
-          videos = response.data.items;
-        })
-          .catch((err) => console.log(err));
-
-        console.log('videos', videos);
-        /**
-         * TODO: Add videos to the databse.
-         */
-        const query = { _id: args.id, };
-        console.log('This should be object id', query);
-        const a = User.findByIdAndUpdate(query, {
-          channelID,
-          uploadID,
-          videos: [{ youtubeVideo }],
-        }, (err, docs) => {
-          console.log(err, docs);
-        });
-
-        // Above here
       })
     },
   }),
@@ -298,8 +499,17 @@ const RootMutationType = new GraphQLObjectType({
         socialmedia: { type: GraphQLString },
         oauth: { type: GraphQLBoolean },
         referral: { type: GraphQLBoolean },
+        admin: { type: GraphQLBoolean },
       },
-      resolve: (parent, args) => {
+      resolve: (parent, args, request) => {
+        // console.log('this is the session', request.session.passport.user);
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
         const user = {
           id: args.id,
           firstname: args.firstname,
@@ -334,35 +544,10 @@ const RootMutationType = new GraphQLObjectType({
         const query = { _id: args.id };
         // console.log(query);
         const a = User.findByIdAndUpdate(query, {
-          firstname: args.firstname,
-          lastname: args.lastname,
-          email: args.email,
-          wachtwoord: args.wachtwoord,
-          companyname: args.companyname,
-          profilepic: args.profilepic,
-          address: args.address,
-          pobox: args.pobox,
-          city: args.city,
-          country: args.country,
-          telephone: args.country,
-          pagetitle: args.pagetitle,
-          pitch: args.pitch,
-          backgroundimage: args.backgroundimage,
-          keywords: args.keywords,
-          profession: args.profession,
-          genre: args.genre,
-          pageRules: args.pageRules,
-          pageContent: args.pageContent,
-          hyperlinks: args.hyperlinks, // fb,youtube,insta
-          pageBuilder: args.pageBuilder,
-          portals: args.portals,
-          socialmedia: args.socialmedia,
-          oauth: args.oauth,
+          ...args
         }, (err, docs) => {
           console.log(err, docs);
         });
-        // console.log(a);
-        // users.push(user);
         return user;
       },
     },
@@ -375,7 +560,14 @@ const RootMutationType = new GraphQLObjectType({
         lastname: { type: GraphQLString },
 
       },
-      resolve: (parent, args) => {
+      resolve: (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
         User.deleteOne({ _id: args.id }, (err) => {
           if (err) return console.log(err);
           // deleted at most one user document
@@ -398,7 +590,15 @@ const RootMutationType = new GraphQLObjectType({
         description: { type: GraphQLString },
 
       },
-      resolve: (parent, args) => {
+      resolve: (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+
         const portal = new Portal({
           id: args.id,
           name: args.name,
@@ -435,7 +635,14 @@ const RootMutationType = new GraphQLObjectType({
         title: { type: GraphQLString },
         description: { type: GraphQLString },
       },
-      resolve: (parent, args) => {
+      resolve: (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id || User.admin === false) {
+          throw new Error('you are not authorised');
+        }
         const portal = {
           id: args.id,
           name: args.name,
@@ -448,26 +655,16 @@ const RootMutationType = new GraphQLObjectType({
           title: args.title,
           description: args.description,
         };
-        // find portal and then add info with .update
-        // how do you find user?
+
         const query = { _id: args.id };
-        console.log(query);
+        // console.log(query);
         const a = Portal.updateOne(query, {
-          id: args.id,
-          name: args.name,
-          type: args.type,
-          typeof2: args.typeof2,
-          settings: args.settings,
-          layout: args.layout,
-          pages: args.pages,
-          footer: args.footer,
-          title: args.title,
-          description: args.description,
+          ...args
+
         }, (err, docs) => {
-          // console.log(err, docs);
+
         });
-        // console.log(a);
-        // users.push(portal);
+
         return portal;
       },
     },
@@ -478,11 +675,15 @@ const RootMutationType = new GraphQLObjectType({
         id: { type: GraphQLString },
         name: { type: GraphQLString },
       },
-      resolve: (parent, args) => {
-        // const portal = new Portal();
+      resolve: (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          console.error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          console.error('you are not authorised');
+        }
 
-
-        // console.log('Portal', portal);
         Portal.deleteOne({ _id: args.id }, (err) => {
           if (err) return console.log(err);
           // deleted at most one portal document
@@ -497,7 +698,14 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         keyword: { type: GraphQLString },
       },
-      resolve: (parent, args) => {
+      resolve: (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        // if (sessionId !== args.id || User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         const keyword = new Keywords({
           keyword: args.keyword,
         });
@@ -510,95 +718,185 @@ const RootMutationType = new GraphQLObjectType({
         return keyword;
       },
     },
-    getInstagramPermissions: {
-      type: TokenType,
-      description: 'Add permissions for instagram this will trigger a window to open',
+    getFacebookPageID: {
+      type: FacebookType,
+      description: 'Gets all the accounts we want from facebook once a user has granted permissions',
       args: {
         id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        facebook: { type: InputFacebookType }
       },
-      resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-        console.log('next step is getcode');
-        const clientId = process.env.INSTAGRAM_ID;
-        const reDirectInstaUri = process.env.INSTAGRAM_ID_URI;
-        const clientSecret = process.env.INSTAGRAM_SECRET;
-        const instagramRedirectUri = process.env.INSTAGRAM_ID_URI;
-        let code = null;
-        const openAuthWindow = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectInstaUri}&scope=user_profile,user_media&response_type=code`;
-        const getToken = `https://api.instagram.com/oauth/access_token \
-        -F client_id=681126272459453 \
-        -F client_secret=${clientSecret} \
-        -F grant_type=authorization_code \
-        -F redirect_uri=${instagramRedirectUri} \
-        -F code=${code}`;
+      resolve: async (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+        try {
+          // get user
+          const user = await User.findById(args.id);
+          const { accessToken } = user.tokens.find((item) => item.kind === 'facebook');
+          const userId = user.facebook;
+          const getFBaccounts = `https://graph.facebook.com/${userId}/accounts?access_token=${accessToken}`;
+          console.log('this is the accesstoken', accessToken, userId);
+          // get pages
+          const fbResponse = await axios.get(getFBaccounts);
 
-
-        // console.log(openAuthWindow);
-        // this will open a pop up window so #note front-end, the response is based on user input.
-        // if you run this code without user input expect an error
-        await axios.get(openAuthWindow)
-          .then((response) => {
-            code = response.code; // 1st run openAuthWindow in browser
-            axios.post(getToken);
-            // example response
-            // https://4c651e81.ngrok.io/auth/callback?code=AQBNVNdRVZh0oDg_yEIXdW441kS5J6yxLAR2Nss-u1wYiQtuPMwbmNG1zDcT_JhxNbnaBBvT2AqRBnVe1Ro4zaadYfilTxVsuM12bLJSEX7hAEroAR7PnhyWII89sDs-1XmnvUvzTjBMRlAZnB_sjC18sz-1LVidjIHlBiaHmkD2kU15_IdowltEpgX40qE51OHHQyzfdMGzzdDiH5-5gE5ElGY8BOuxy-rDh4j3vYF47w#_
-
-            console.log('code recieved', response.code);
-          })
-          .catch((err) => console.log(err));
-        // get accessToken
-        // eslint-disable-next-line max-len
-        // {"access_token": "IGQVJWUWctb09tNWxobFE0azQ1WUtxM0szODFtclB0SVVqVUJRaXhoYnhmaV9hVURzeXVfRFI5YTZAfSUw0aUVqMTYtRXluY3dvZAWlSMF95ZAUU1dnJFU0RUR3o2enF4Y183TFBOSjVZAQkxZAMnpNVTZAfS29DLVJmaTRpU3VJ", "user_id": 17841400762060616}%
-
-        const token = new InputTokenType({
-          kind: 'Instagram',
-          accessToken: args.accessToken
-        });
-        console.log('Tokens', InputTokenType);
-        token.save((err, a) => {
-          if (err) return console.error(err);
-          console.log('after save: ', a);
-        });
-        console.log(args);
-        return token;
+          // use mongoose prototype method "save" to update the user
+          user.facebookpages = fbResponse.data.data;
+          // console.log('this is before save ', user.facebookpages);
+          await user.save();
+          // console.log('this is the saved content', user.facebookpages);
+        } catch (e) {
+          console.log(e);
+        }
       }
-      ),
     },
-    // getFacebookPermissions: {
-    //   type: InputTokenType,
-    //   description: 'Add permissions for facebook this will trigger a window to open',
-    //   args: {
-    //     id: { type: GraphQLString },
-    //   },
-    //   resolve: (parent, args) => User.findOne({ _id: args.id }, async (err, docs) => {
-    //     console.log('next step is getcode');
-    //     const clientId = process.env.FACEBOOK_ID;
-    //     const reDirectFBUri = process.env.FACEBOOK_ID_URI;
 
-    //     const openAuthWindow = `https://api.facebook.com/oauth/authorize?client_id=${clientId}&redirect_uri=${reDirectFBUri}&scope=user_profile,user_media&response_type=code`;
-    //     let code = null;
-    //     // console.log(openAuthWindow);
-    //     // this will open a pop up window so #note front-end
-    //     await axios.get(openAuthWindow)
-    //       .then((response) => {
-    //         code = response.code;
-    //         console.log('code recieved', response.code);
-    //       })
-    //       .catch((err) => console.log(err));
-    //     // get accessToken
-    //     const token = new InputTokenType({
-    //       kind: 'Instagram',
-    //       accessToken: args.accessToken
-    //     });
-    //     console.log('InputTokens', InputTokenType);
-    //     token.save((err, a) => {
-    //       if (err) return console.error(err);
-    //       console.log('after save: ', a);
-    //     });
-    //     console.log(args);
-    //     return token;
-    //   }
-    //   ),
-    // },
+
+    getFacebookPageContent: {
+      type: FacebookType,
+      description: 'Gets all the content we want from facebook once a user has granted permissions',
+      args: {
+        id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        fanCount: { type: GraphQLString },
+        pageName: { type: GraphQLString },
+      },
+      resolve: async (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        console.log(sessionId);
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+        try {
+          console.log('next step is getcontent');
+          const user = await User.findById(args.id);
+          const { pageName } = args;
+          // eslint-disable-next-line camelcase
+          const { access_token } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
+          const { id } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
+          console.log(pageName, access_token, id);
+          const fieldsToGet = 'birthday,about,band_members,bio,connected_instagram_account,contact_address,cover,current_location,description,display_subtext,emails,engagement,fan_count,featured_video,founded,general_info,genre,global_brand_page_name,global_brand_root_id,hometown,instagram_business_account,is_community_page,is_owned,is_published,is_webhooks_subscribed,link,location,name,page_token,personal_info,personal_interests,phone,place_type,single_line_address,username,published_posts,videos';
+          // eslint-disable-next-line camelcase
+          const getAccountContents = `https://graph.facebook.com/${id}?fields=${fieldsToGet}&access_token=${access_token}`;
+          const fbpageContent = await axios.get(getAccountContents);
+
+          user.facebookPageContents = fbpageContent.data;
+
+          await user.save();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    },
+    getInstagramPageContent: {
+      type: InstagramType,
+      description: 'Gets all the content we want from Instagram once a user has granted permissions',
+      args: {
+        id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        fanCount: { type: GraphQLString },
+        pageName: { type: GraphQLString },
+      },
+      resolve: async (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+        try {
+          console.log('next step is getcontent');
+          const user = await User.findById(args.id);
+
+          const { accessToken } = user.tokens.find((item) => item.kind === 'instagram');
+          // console.log(accessToken);
+          const fieldsToGet = 'id,account_type,media_count,username,media';
+
+          const getAccountContents = `https://graph.instagram.com/me?fields=${fieldsToGet}&access_token=${accessToken}`;
+          //         `https://graph.instagram.com/{media-id}?fields=${fieldsToGet}&access_token=${access_token}`;
+          // `https://graph.instagram.com/me/media?fields=${fieldsToGet}&access_token=${access_token}`
+          console.log(getAccountContents);
+          const instaPageContent = await axios.get(getAccountContents);
+          console.log(instaPageContent);
+
+          user.instagramContents = instaPageContent.data;
+          // console.log('this is before save ', user.instagramContents);
+          await user.save();
+          // console.log('this is after save ', user.instagramContents);
+        } catch (e) {
+          // console.log(e);
+        }
+      }
+    },
+    getYoutubeContents: {
+      type: UserType,
+      description: 'A gets youtube video contents of a user',
+      args: {
+        id: { type: GraphQLString },
+        channelID: { type: GraphQLString },
+        uploadID: { type: GraphQLString },
+
+      },
+      resolve: async (parent, args, request) => {
+        const sessionId = request.session.passport.user;
+        if (!sessionId) {
+          throw new Error('you are not logged in');
+        }
+        if (sessionId !== args.id && User.admin === false) {
+          throw new Error('you are not authorised');
+        }
+        try {
+          const user = await User.findById(args.id);
+          console.log('next step is getchannel');
+          const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
+          const { accessToken } = user.tokens.find((item) => item.kind === 'google');
+
+          const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
+          // console.log('ran getChannelID ');
+          let channelID = null;
+          await axios.get(getChannelID, { headers: { Authorization: `Bearer ${accessToken}` } })
+            .then((response) => {
+              channelID = response.data.items[0].id;
+              console.log('channelID', response.data.items[0].id);
+            })
+            .catch((err) => console.log(err));
+
+          const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+          let uploadID = null;
+          await axios.get(getUploadID, { headers: { Authorization: `Bearer ${accessToken}` } })
+            .then((response) => {
+              uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
+              console.log('getUploadID', response.data.items[0].contentDetails.relatedPlaylists.uploads);
+            })
+            .catch((err) => console.log(err));
+          const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+
+          let videos = [];
+          await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${accessToken}` } }).then((response) => {
+            console.log('videoPlaylistURL', response.data);
+            videos = response.data.items;
+          })
+            .catch((err) => console.log(err));
+
+          console.log('videos', videos);
+          user.videos = videos;
+          // console.log('this is before save ', user.instagramContents);
+          await user.save();
+          // console.log('this is after save ', user.instagramContents);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+    },
   }
   )
 });
@@ -607,418 +905,20 @@ const schema = new GraphQLSchema({
   query: RootQueryType,
   mutation: RootMutationType,
 });
-app.use(
-  '/graphql',
+app.use('/graphql',
   ExpressGraphQL({
     schema,
     graphiql: true,
-  })
-);
+  }));
 
 // ----------------------Express config to be adjusted after graphql works------------------------//
-
-/**
- * Express configuration.
- */
-app.set('host', process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0');
-app.set('port', process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-app.use(expressStatusMonitor());
-app.use(compression());
-app.use(
-  sass({
-    src: path.join(__dirname, 'public'),
-    dest: path.join(__dirname, 'public'),
-  })
-);
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-  session({
-    resave: true,
-    saveUninitialized: true,
-    secret: process.env.SESSION_SECRET,
-    cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
-    store: new MongoStore({
-      url: process.env.MONGODB_URI,
-      autoReconnect: true,
-    }),
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(flash());
-app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
-    // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
-    next();
-  } else {
-    lusca.csrf()(req, res, next);
-  }
+// ----------------------Express cronjob  starts ------------------------//
+cron.schedule('59 23 * * * ', () => {
+  console.log('if you see this you know that the cron is running');
+  syncContents();
 });
-app.use(lusca.xframe('SAMEORIGIN'));
-app.use(lusca.xssProtection(true));
-app.disable('x-powered-by');
-app.use((req, res, next) => {
-  res.locals.user = req.user;
-  next();
-});
-app.use((req, res, next) => {
-  // After successful login, redirect back to the intended page
-  if (
-    !req.user
-    && req.path !== '/login'
-    && req.path !== '/signup'
-    && !req.path.match(/^\/auth/)
-    && !req.path.match(/\./)
-  ) {
-    req.session.returnTo = req.originalUrl;
-  } else if (
-    req.user
-    && (req.path === '/account' || req.path.match(/^\/api/))
-  ) {
-    req.session.returnTo = req.originalUrl;
-  }
-  next();
-});
-app.use(
-  '/',
-  express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 })
-);
-app.use(
-  '/js/lib',
-  express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
-    maxAge: 31557600000,
-  })
-);
-app.use(
-  '/js/lib',
-  express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
-    maxAge: 31557600000,
-  })
-);
-app.use(
-  '/js/lib',
-  express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
-    maxAge: 31557600000,
-  })
-);
-app.use(
-  '/js/lib',
-  express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
-    maxAge: 31557600000,
-  })
-);
-app.use(
-  '/webfonts',
-  express.static(
-    path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
-    { maxAge: 31557600000 }
-  )
-);
-
-/**
- * Primary app routes.
- */
-app.get('/', homeController.index);
-app.get('/login', userController.getLogin);
-app.post('/login', userController.postLogin);
-app.get('/logout', userController.logout);
-app.get('/forgot', userController.getForgot);
-app.post('/forgot', userController.postForgot);
-app.get('/reset/:token', userController.getReset);
-app.post('/reset/:token', userController.postReset);
-app.get('/signup', userController.getSignup);
-app.post('/signup', userController.postSignup);
-app.get('/contact', contactController.getContact);
-app.post('/contact', contactController.postContact);
-app.get(
-  '/account/verify',
-  passportConfig.isAuthenticated,
-  userController.getVerifyEmail
-);
-app.get(
-  '/account/verify/:token',
-  passportConfig.isAuthenticated,
-  userController.getVerifyEmailToken
-);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post(
-  '/account/profile',
-  passportConfig.isAuthenticated,
-  userController.postUpdateProfile
-);
-app.post(
-  '/account/password',
-  passportConfig.isAuthenticated,
-  userController.postUpdatePassword
-);
-app.post(
-  '/account/delete',
-  passportConfig.isAuthenticated,
-  userController.postDeleteAccount
-);
-app.get(
-  '/account/unlink/:provider',
-  passportConfig.isAuthenticated,
-  userController.getOauthUnlink
-);
-
-/**
- * API examples routes.
- */
-app.get('/api', apiController.getApi);
-app.get('/api/lastfm', apiController.getLastfm);
-app.get('/api/nyt', apiController.getNewYorkTimes);
-app.get(
-  '/api/steam',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getSteam
-);
-app.get('/api/stripe', apiController.getStripe);
-app.post('/api/stripe', apiController.postStripe);
-app.get('/api/scraping', apiController.getScraping);
-app.get('/api/twilio', apiController.getTwilio);
-app.post('/api/twilio', apiController.postTwilio);
-app.get('/api/clockwork', apiController.getClockwork);
-app.post('/api/clockwork', apiController.postClockwork);
-app.get(
-  '/api/foursquare',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getFoursquare
-);
-app.get(
-  '/api/tumblr',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getTumblr
-);
-app.get(
-  '/api/facebook',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getFacebook
-);
-app.get(
-  '/api/github',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getGithub
-);
-app.get(
-  '/api/twitter',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getTwitter
-);
-app.post(
-  '/api/twitter',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.postTwitter
-);
-app.get(
-  '/api/twitch',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getTwitch
-);
-app.get(
-  '/api/instagram',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getInstagram
-);
-app.get('/api/paypal', apiController.getPayPal);
-app.get('/api/paypal/success', apiController.getPayPalSuccess);
-app.get('/api/paypal/cancel', apiController.getPayPalCancel);
-app.get('/api/lob', apiController.getLob);
-app.get('/api/upload', lusca({ csrf: true }), apiController.getFileUpload);
-app.post(
-  '/api/upload',
-  upload.single('myFile'),
-  lusca({ csrf: true }),
-  apiController.postFileUpload
-);
-app.get(
-  '/api/pinterest',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getPinterest
-);
-app.post(
-  '/api/pinterest',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.postPinterest
-);
-app.get('/api/here-maps', apiController.getHereMaps);
-app.get('/api/google-maps', apiController.getGoogleMaps);
-app.get(
-  '/api/google/drive',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getGoogleDrive
-);
-app.get('/api/chart', apiController.getChart);
-app.get(
-  '/api/google/sheets',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getGoogleSheets
-);
-app.get(
-  '/api/quickbooks',
-  passportConfig.isAuthenticated,
-  passportConfig.isAuthorized,
-  apiController.getQuickbooks
-);
-
-/**
- * OAuth authentication routes. (Sign in)
- */
-app.get(
-  '/auth/instagram',
-  passport.authenticate('instagram', { scope: ['basic', 'public_content'] })
-);
-app.get(
-  '/auth/instagram/callback',
-  passport.authenticate('instagram', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
-// app.get('/auth/snapchat', passport.authenticate('snapchat'));
-// app.get(
-//   '/auth/snapchat/callback',
-//   passport.authenticate('snapchat', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo || '/');
-//   }
-// );
-app.get(
-  '/auth/facebook',
-  passport.authenticate('facebook', { scope: ['email', 'public_profile'] })
-);
-app.get(
-  '/auth/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
-// app.get('/auth/github', passport.authenticate('github'));
-// app.get(
-//   '/auth/github/callback',
-//   passport.authenticate('github', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo || '/');
-//   }
-// );
-app.get(
-  '/auth/google',
-  passport.authenticate('google', {
-    scope: [
-      'profile',
-      'email',
-      'https://www.googleapis.com/auth/youtube.readonly'
-      // 'https://www.googleapis.com/auth/spreadsheets.readonly',
-    ],
-    accessType: 'offline',
-    prompt: 'consent',
-  })
-);
-app.get(
-  '/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(req.session.returnTo || '/');
-  }
-);
-// app.get('/auth/twitter', passport.authenticate('twitter'));
-// app.get(
-//   '/auth/twitter/callback',
-//   passport.authenticate('twitter', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo || '/');
-//   }
-// );
-// app.get(
-//   '/auth/linkedin',
-//   passport.authenticate('linkedin', { state: 'SOME STATE' })
-// );
-// app.get(
-//   '/auth/linkedin/callback',
-//   passport.authenticate('linkedin', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo || '/');
-//   }
-// );
-// app.get('/auth/twitch', passport.authenticate('twitch', {}));
-// app.get(
-//   '/auth/twitch/callback',
-//   passport.authenticate('twitch', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo || '/');
-//   }
-// );
-
-/**
- * OAuth authorization routes. (API examples)
- */
-// app.get('/auth/foursquare', passport.authorize('foursquare'));
-// app.get(
-//   '/auth/foursquare/callback',
-//   passport.authorize('foursquare', { failureRedirect: '/api' }),
-//   (req, res) => {
-//     res.redirect('/api/foursquare');
-//   }
-// );
-// app.get('/auth/tumblr', passport.authorize('tumblr'));
-// app.get(
-//   '/auth/tumblr/callback',
-//   passport.authorize('tumblr', { failureRedirect: '/api' }),
-//   (req, res) => {
-//     res.redirect('/api/tumblr');
-//   }
-// );
-// app.get('/auth/steam', passport.authorize('openid', { state: 'SOME STATE' }));
-// app.get(
-//   '/auth/steam/callback',
-//   passport.authorize('openid', { failureRedirect: '/api' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo);
-//   }
-// );
-// app.get(
-//   '/auth/pinterest',
-//   passport.authorize('pinterest', { scope: 'read_public write_public' })
-// );
-// app.get(
-//   '/auth/pinterest/callback',
-//   passport.authorize('pinterest', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect('/api/pinterest');
-//   }
-// );
-// app.get(
-//   '/auth/quickbooks',
-//   passport.authorize('quickbooks', {
-//     scope: ['com.intuit.quickbooks.accounting'],
-//     state: 'SOME STATE',
-//   })
-// );
-// app.get(
-//   '/auth/quickbooks/callback',
-//   passport.authorize('quickbooks', { failureRedirect: '/login' }),
-//   (req, res) => {
-//     res.redirect(req.session.returnTo);
-//   }
-// );
+app.listen(3128);
+// ----------------------Express cronjob ends ------------------------//
 
 /**
  * Error Handler.
@@ -1037,12 +937,10 @@ if (process.env.NODE_ENV === 'development') {
  * Start Express server.
  */
 app.listen(app.get('port'), () => {
-  console.log(
-    '%s App is running at http://localhost:%d in %s mode',
+  console.log('%s App is running at http://localhost:%d in %s mode',
     chalk.green('✓'),
     app.get('port'),
-    app.get('env')
-  );
+    app.get('env'));
   console.log('  Press CTRL-C to stop\n');
 });
 
