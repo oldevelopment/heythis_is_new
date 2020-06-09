@@ -8,9 +8,7 @@ describe('User Model', () => {
     const UserMock = sinon.mock(new User({ email: 'test@gmail.com', password: 'root' }));
     const user = UserMock.object;
 
-    UserMock
-      .expects('save')
-      .yields(null);
+    UserMock.expects('save').yields(null);
 
     user.save((err) => {
       UserMock.verify();
@@ -27,9 +25,7 @@ describe('User Model', () => {
       name: 'ValidationError'
     };
 
-    UserMock
-      .expects('save')
-      .yields(expectedError);
+    UserMock.expects('save').yields(expectedError);
 
     user.save((err, result) => {
       UserMock.verify();
@@ -48,9 +44,7 @@ describe('User Model', () => {
       code: 11000
     };
 
-    UserMock
-      .expects('save')
-      .yields(expectedError);
+    UserMock.expects('save').yields(expectedError);
 
     user.save((err, result) => {
       UserMock.verify();

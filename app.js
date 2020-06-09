@@ -5,6 +5,7 @@
 /**
  * Module dependencies.
  */
+const { loadNuxt, build } = require('nuxt');
 const express = require('express');
 const cron = require('node-cron');
 // const router = express.Router();
@@ -31,7 +32,6 @@ const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
 const axios = require('axios');
-
 
 const {
   GraphQLID,
@@ -73,7 +73,6 @@ const InputKeywordType = require('./graphql-types/InputKeywordType');
 const InputTokenType = require('./graphql-types/InputTokenType');
 const youtubeVideo = require('./graphql-types/YoutubeVideo');
 const syncContents = require('./cron');
-
 
 // const User = require('./models/user-repo.model');
 /**
@@ -122,21 +121,20 @@ app.use(expressStatusMonitor());
 app.use(compression());
 app.use(sass({
   src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
+  dest: path.join(__dirname, 'public')
 }));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-
   resave: true,
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
   cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
   store: new MongoStore({
     url: process.env.MONGODB_URI,
-    autoReconnect: true,
-  }),
+    autoReconnect: true
+  })
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -178,19 +176,19 @@ app.use('/',
   express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use('/js/lib',
   express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
-    maxAge: 31557600000,
+    maxAge: 31557600000
   }));
 app.use('/js/lib',
   express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
-    maxAge: 31557600000,
+    maxAge: 31557600000
   }));
 app.use('/js/lib',
   express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
-    maxAge: 31557600000,
+    maxAge: 31557600000
   }));
 app.use('/js/lib',
   express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
-    maxAge: 31557600000,
+    maxAge: 31557600000
   }));
 app.use('/webfonts',
   express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
@@ -199,7 +197,7 @@ app.use('/webfonts',
 /**
  * Primary app routes.
  */
-app.get('/', homeController.index);
+// app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
@@ -248,7 +246,6 @@ app.get('/api/facebook',
 //   apiController.getInstagram
 // );
 
-
 /**
  * OAuth authentication routes. (Sign in)
  */
@@ -279,7 +276,11 @@ app.get('/auth/instagram/callback', (req, res) => {
   const url = 'https://api.instagram.com/oauth/access_token';
 
   const body = {
-    client_id: clientId, client_secret: clientSecret, grant_type: 'authorization_code', redirect_uri: redirectUri, code
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: 'authorization_code',
+    redirect_uri: redirectUri,
+    code
   };
 
   request({
@@ -289,58 +290,74 @@ app.get('/auth/instagram/callback', (req, res) => {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
-  })
-    .then((response) => {
-      // eslint-disable-next-line camelcase
-      const { access_token, user_id } = JSON.parse(response);
-      console.log('RESPonse', response);
-      // eslint-disable-next-line camelcase
-      const accessToken = access_token;
-      console.log('ACCESS_TOKEN', accessToken, typeof (response));
-      const getLongLivedToken = ` https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${clientSecret}&access_token=${accessToken}`;
-      const { longLivedToken, expiresIn } = axios.get(getLongLivedToken)
-        .then((response) => {
-          console.log('this is the longlived token', response.data);
-          const { access_token: longLivedToken, expires: expiresIn } = response.data;
-          console.log('this is the long lived token', longLivedToken, expiresIn);
-          User.findById(req.user.id, (err, user) => {
-            if (err) { return (err); }
-            // eslint-disable-next-line camelcase
-            user.profile.instagram = user_id;
-            user.tokens.push({
-              kind: 'instagram', longLivedToken, expiresIn
-            });
-            console.log('this is longlived pushed');
-            user.save((err) => {
-              console.log('successfully added longlivedtoken');
-            });
+  }).then((response) => {
+    // eslint-disable-next-line camelcase
+    const { access_token, user_id } = JSON.parse(response);
+    console.log('RESPonse', response);
+    // eslint-disable-next-line camelcase
+    const accessToken = access_token;
+    console.log('ACCESS_TOKEN', accessToken, typeof response);
+    const getLongLivedToken = ` https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${clientSecret}&access_token=${accessToken}`;
+    const { longLivedToken, expiresIn } = axios
+      .get(getLongLivedToken)
+      .then((response) => {
+        console.log('this is the longlived token', response.data);
+        const {
+          access_token: longLivedToken,
+          expires: expiresIn
+        } = response.data;
+        console.log('this is the long lived token', longLivedToken, expiresIn);
+        User.findById(req.user.id, (err, user) => {
+          if (err) {
+            return err;
+          }
+          // eslint-disable-next-line camelcase
+          user.profile.instagram = user_id;
+          user.tokens.push({
+            kind: 'instagram',
+            longLivedToken,
+            expiresIn
           });
+          console.log('this is longlived pushed');
+          user.save((err) => {
+            console.log('successfully added longlivedtoken');
+          });
+        });
 
-          // user.token.instagram.longLivedToken = longLivedToken;
-          // user.token.instagram.expiresIn = expires;
-        });
-      console.log('this is the long lived token 2nd line', longLivedToken, expiresIn);
-      User.findById(req.user.id, (err, user) => {
-        if (err) { return (err); }
-        // eslint-disable-next-line camelcase
-        user.profile.instagram = user_id;
-        user.tokens.push({
-          kind: 'instagram', accessToken: access_token, instagramId: user_id, longLivedToken, expiresIn
-        });
-        console.log('this is after push');
-        // console.log('ACCESS_TOKEN', accessToken, typeof (response));
-        user.save((err) => {
-          req.flash('info', { msg: 'Instagram account has been linked.' });
-          res.redirect('/account');
-        });
+        // user.token.instagram.longLivedToken = longLivedToken;
+        // user.token.instagram.expiresIn = expires;
+      });
+    console.log('this is the long lived token 2nd line',
+      longLivedToken,
+      expiresIn);
+    User.findById(req.user.id, (err, user) => {
+      if (err) {
+        return err;
+      }
+      // eslint-disable-next-line camelcase
+      user.profile.instagram = user_id;
+      user.tokens.push({
+        kind: 'instagram',
+        accessToken: access_token,
+        instagramId: user_id,
+        longLivedToken,
+        expiresIn
+      });
+      console.log('this is after push');
+      // console.log('ACCESS_TOKEN', accessToken, typeof (response));
+      user.save((err) => {
+        req.flash('info', { msg: 'Instagram account has been linked.' });
+        res.redirect('/account');
       });
     });
+  });
 });
 // });
 
-
 app.get('/auth/facebook',
-  passport.authenticate('facebook', { scope: ['email', 'public_profile', 'manage_pages'] }));
+  passport.authenticate('facebook', {
+    scope: ['email', 'public_profile', 'manage_pages']
+  }));
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   (req, res) => {
@@ -356,7 +373,7 @@ app.get('/auth/google',
       // 'https://www.googleapis.com/auth/spreadsheets.readonly',
     ],
     accessType: 'offline',
-    prompt: 'consent',
+    prompt: 'consent'
   }));
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
@@ -364,9 +381,7 @@ app.get('/auth/google/callback',
     res.redirect(req.session.returnTo || '/');
   });
 
-
 // ________________________________________graphql starts here_________________________________
-
 
 // instead of the single schema above we now use a RootQuerytype
 const RootQueryType = new GraphQLObjectType({
@@ -377,64 +392,67 @@ const RootQueryType = new GraphQLObjectType({
       type: PortalType,
       description: 'A single portal',
       args: {
-        id: { type: GraphQLID },
+        id: { type: GraphQLID }
       },
-      resolve: (parent, args) => Portal.findOne({ _id: args.id }, (err, docs) => {
-        console.log(err, docs);
-      })
+      resolve: (parent, args) =>
+        Portal.findOne({ _id: args.id }, (err, docs) => {
+          console.log(err, docs);
+        })
     },
     portals: {
       type: new GraphQLList(PortalType),
       description: 'List of all portals',
-      resolve: () => Portal.find({}, (err, docs) => {
-        console.log(err, docs);
-      })
+      resolve: () =>
+        Portal.find({}, (err, docs) => {
+          console.log(err, docs);
+        })
     },
     users: {
       type: new GraphQLList(UserType),
       description: 'List of all user',
       args: {
-        keywords: { type: GraphQLString },
+        keywords: { type: GraphQLString }
       },
-      resolve: () => User.find({}, (err, docs) => {
-        // docs.forEach
-        console.log(err, docs);
-      })
+      resolve: () =>
+        User.find({}, (err, docs) => {
+          // docs.forEach
+          console.log(err, docs);
+        })
     },
     user: {
       type: UserType,
       description: 'A single user',
       args: {
-        id: { type: GraphQLID },
+        id: { type: GraphQLID }
       },
-      resolve: (parent, args) => User.findOne({ _id: args.id }, (err, docs) => {
-
-        // console.log(err, docs);
-      })
+      resolve: (parent, args) =>
+        User.findOne({ _id: args.id }, (err, docs) => {
+          // console.log(err, docs);
+        })
     },
     keyword: {
       type: KeywordType,
       description: 'A single keyword that denotes an interest of a user',
       args: {
         id: { type: GraphQLID },
-        keyword: { type: GraphQLString },
+        keyword: { type: GraphQLString }
       },
-      resolve: (parent, args) => Keywords.findOne({ _id: args.id }, (err, docs) => {
-        // do not use a find one here please look up and use a 3 letter matching system
-        console.log(err, docs);
-      })
+      resolve: (parent, args) =>
+        Keywords.findOne({ _id: args.id }, (err, docs) => {
+          // do not use a find one here please look up and use a 3 letter matching system
+          console.log(err, docs);
+        })
     },
     keywords: {
       type: new GraphQLList(KeywordType),
       description: 'List of all Keywords',
-      resolve: () => Keywords.find({}, (err, docs) => {
-        // docs.forEach
-        console.log(err, docs);
-      })
-    },
-  }),
-
-
+      resolve: () =>
+        Keywords.find({}, (err, docs) => {
+          // docs.forEach
+          console.log(err, docs);
+        })
+    }
+  })
 });
 
 const RootMutationType = new GraphQLObjectType({
@@ -448,14 +466,14 @@ const RootMutationType = new GraphQLObjectType({
         firstname: { type: GraphQLString },
         lastname: { type: GraphQLNonNull(GraphQLString) },
         email: { type: GraphQLNonNull(GraphQLString) },
-        wachtwoord: { type: GraphQLNonNull(GraphQLString) },
+        wachtwoord: { type: GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
         const user = new User({
           firstname: args.firstname,
           lastname: args.lastname,
           email: args.email,
-          wachtwoord: args.wachtwoord,
+          wachtwoord: args.wachtwoord
         });
         console.log('User', user);
         user.save((err, a) => {
@@ -464,7 +482,7 @@ const RootMutationType = new GraphQLObjectType({
         });
         console.log(args);
         return user;
-      },
+      }
     },
     // update user starts here
     updateUser: {
@@ -499,7 +517,7 @@ const RootMutationType = new GraphQLObjectType({
         socialmedia: { type: GraphQLString },
         oauth: { type: GraphQLBoolean },
         referral: { type: GraphQLBoolean },
-        admin: { type: GraphQLBoolean },
+        admin: { type: GraphQLBoolean }
       },
       resolve: (parent, args, request) => {
         // console.log('this is the session', request.session.passport.user);
@@ -536,20 +554,22 @@ const RootMutationType = new GraphQLObjectType({
           portals: args.portals,
           socialmedia: args.socialmedia,
           oauth: args.oauth,
-          referral: { type: args.referral },
+          referral: { type: args.referral }
         };
         console.log(args.keywords);
         // find user and then add info with .update
         // how do you find user?
         const query = { _id: args.id };
         // console.log(query);
-        const a = User.findByIdAndUpdate(query, {
-          ...args
-        }, (err, docs) => {
-          console.log(err, docs);
-        });
+        const a = User.findByIdAndUpdate(query,
+          {
+            ...args
+          },
+          (err, docs) => {
+            console.log(err, docs);
+          });
         return user;
-      },
+      }
     },
     deleteUser: {
       type: PortalType,
@@ -557,8 +577,7 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLString },
         firstname: { type: GraphQLString },
-        lastname: { type: GraphQLString },
-
+        lastname: { type: GraphQLString }
       },
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -573,7 +592,7 @@ const RootMutationType = new GraphQLObjectType({
           // deleted at most one user document
         });
         return args;
-      },
+      }
     },
     createPortal: {
       type: PortalType,
@@ -582,13 +601,12 @@ const RootMutationType = new GraphQLObjectType({
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
         typeof2: { type: GraphQLString },
-        settings: { type: (InputSettingsType) },
+        settings: { type: InputSettingsType },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
         title: { type: GraphQLString },
-        description: { type: GraphQLString },
-
+        description: { type: GraphQLString }
       },
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -609,7 +627,7 @@ const RootMutationType = new GraphQLObjectType({
           pages: args.pages,
           footer: args.footer,
           title: args.title,
-          description: args.description,
+          description: args.description
         });
         console.log('Portal', portal);
         portal.save((err, a) => {
@@ -618,7 +636,7 @@ const RootMutationType = new GraphQLObjectType({
         });
         console.log(args);
         return portal;
-      },
+      }
     },
     updatePortal: {
       type: PortalType,
@@ -628,12 +646,12 @@ const RootMutationType = new GraphQLObjectType({
         name: { type: GraphQLNonNull(GraphQLString) },
         type: { type: GraphQLString },
         typeof2: { type: GraphQLString },
-        settings: { type: (InputSettingsType) },
+        settings: { type: InputSettingsType },
         layout: { type: GraphQLString },
         pages: { type: GraphQLString },
         footer: { type: GraphQLString },
         title: { type: GraphQLString },
-        description: { type: GraphQLString },
+        description: { type: GraphQLString }
       },
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -653,27 +671,26 @@ const RootMutationType = new GraphQLObjectType({
           pages: args.pages,
           footer: args.footer,
           title: args.title,
-          description: args.description,
+          description: args.description
         };
 
         const query = { _id: args.id };
         // console.log(query);
-        const a = Portal.updateOne(query, {
-          ...args
-
-        }, (err, docs) => {
-
-        });
+        const a = Portal.updateOne(query,
+          {
+            ...args
+          },
+          (err, docs) => {});
 
         return portal;
-      },
+      }
     },
     deletePortal: {
       type: PortalType,
       description: 'Delete a  portal',
       args: {
         id: { type: GraphQLString },
-        name: { type: GraphQLString },
+        name: { type: GraphQLString }
       },
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -690,13 +707,13 @@ const RootMutationType = new GraphQLObjectType({
         });
 
         return args;
-      },
+      }
     },
     addKeyword: {
       type: KeywordType,
       description: 'Add a  Keyword',
       args: {
-        keyword: { type: GraphQLString },
+        keyword: { type: GraphQLString }
       },
       resolve: (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -707,7 +724,7 @@ const RootMutationType = new GraphQLObjectType({
         //   throw new Error('you are not authorised');
         // }
         const keyword = new Keywords({
-          keyword: args.keyword,
+          keyword: args.keyword
         });
         console.log('Keywords', keyword);
         keyword.save((err, a) => {
@@ -716,11 +733,12 @@ const RootMutationType = new GraphQLObjectType({
         });
         console.log(args);
         return keyword;
-      },
+      }
     },
     getFacebookPageID: {
       type: FacebookType,
-      description: 'Gets all the accounts we want from facebook once a user has granted permissions',
+      description:
+        'Gets all the accounts we want from facebook once a user has granted permissions',
       args: {
         id: { type: GraphQLString },
         accessToken: { type: GraphQLString },
@@ -755,15 +773,15 @@ const RootMutationType = new GraphQLObjectType({
       }
     },
 
-
     getFacebookPageContent: {
       type: FacebookType,
-      description: 'Gets all the content we want from facebook once a user has granted permissions',
+      description:
+        'Gets all the content we want from facebook once a user has granted permissions',
       args: {
         id: { type: GraphQLString },
         accessToken: { type: GraphQLString },
         fanCount: { type: GraphQLString },
-        pageName: { type: GraphQLString },
+        pageName: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -779,8 +797,10 @@ const RootMutationType = new GraphQLObjectType({
           const user = await User.findById(args.id);
           const { pageName } = args;
           // eslint-disable-next-line camelcase
-          const { access_token } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
-          const { id } = user.facebookpages.find((item) => (item) => item === `${pageName}`);
+          const { access_token } = user.facebookpages.find((item) => (item) =>
+            item === `${pageName}`);
+          const { id } = user.facebookpages.find((item) => (item) =>
+            item === `${pageName}`);
           console.log(pageName, access_token, id);
           const fieldsToGet = 'birthday,about,band_members,bio,connected_instagram_account,contact_address,cover,current_location,description,display_subtext,emails,engagement,fan_count,featured_video,founded,general_info,genre,global_brand_page_name,global_brand_root_id,hometown,instagram_business_account,is_community_page,is_owned,is_published,is_webhooks_subscribed,link,location,name,page_token,personal_info,personal_interests,phone,place_type,single_line_address,username,published_posts,videos';
           // eslint-disable-next-line camelcase
@@ -797,12 +817,13 @@ const RootMutationType = new GraphQLObjectType({
     },
     getInstagramPageContent: {
       type: InstagramType,
-      description: 'Gets all the content we want from Instagram once a user has granted permissions',
+      description:
+        'Gets all the content we want from Instagram once a user has granted permissions',
       args: {
         id: { type: GraphQLString },
         accessToken: { type: GraphQLString },
         fanCount: { type: GraphQLString },
-        pageName: { type: GraphQLString },
+        pageName: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -842,8 +863,7 @@ const RootMutationType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLString },
         channelID: { type: GraphQLString },
-        uploadID: { type: GraphQLString },
-
+        uploadID: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
         const sessionId = request.session.passport.user;
@@ -862,7 +882,10 @@ const RootMutationType = new GraphQLObjectType({
           const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
           // console.log('ran getChannelID ');
           let channelID = null;
-          await axios.get(getChannelID, { headers: { Authorization: `Bearer ${accessToken}` } })
+          await axios
+            .get(getChannelID, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
             .then((response) => {
               channelID = response.data.items[0].id;
               console.log('channelID', response.data.items[0].id);
@@ -871,19 +894,27 @@ const RootMutationType = new GraphQLObjectType({
 
           const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
           let uploadID = null;
-          await axios.get(getUploadID, { headers: { Authorization: `Bearer ${accessToken}` } })
+          await axios
+            .get(getUploadID, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
             .then((response) => {
               uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
-              console.log('getUploadID', response.data.items[0].contentDetails.relatedPlaylists.uploads);
+              console.log('getUploadID',
+                response.data.items[0].contentDetails.relatedPlaylists.uploads);
             })
             .catch((err) => console.log(err));
           const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
 
           let videos = [];
-          await axios.get(videoPlaylistURL, { headers: { Authorization: `Bearer ${accessToken}` } }).then((response) => {
-            console.log('videoPlaylistURL', response.data);
-            videos = response.data.items;
-          })
+          await axios
+            .get(videoPlaylistURL, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
+            .then((response) => {
+              console.log('videoPlaylistURL', response.data);
+              videos = response.data.items;
+            })
             .catch((err) => console.log(err));
 
           console.log('videos', videos);
@@ -895,20 +926,18 @@ const RootMutationType = new GraphQLObjectType({
           console.log(e);
         }
       }
-
-    },
-  }
-  )
+    }
+  })
 });
 
 const schema = new GraphQLSchema({
   query: RootQueryType,
-  mutation: RootMutationType,
+  mutation: RootMutationType
 });
 app.use('/graphql',
   ExpressGraphQL({
     schema,
-    graphiql: true,
+    graphiql: true
   }));
 
 // ----------------------Express config to be adjusted after graphql works------------------------//
@@ -933,15 +962,28 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-/**
- * Start Express server.
- */
-app.listen(app.get('port'), () => {
-  console.log('%s App is running at http://localhost:%d in %s mode',
-    chalk.green('✓'),
-    app.get('port'),
-    app.get('env'));
-  console.log('  Press CTRL-C to stop\n');
-});
+(async function start() {
+  // We get Nuxt instance
+  const nuxt = await loadNuxt(app.get('env') === 'development' ? 'dev' : 'start');
+
+  // Render every route with Nuxt.js
+  app.use(nuxt.render);
+
+  // Build only in dev mode with hot-reloading
+  if (app.get('env') === 'development') {
+    build(nuxt);
+  }
+  // Listen the server
+  /**
+   * Start Express server.
+   */
+  app.listen(app.get('port'), () => {
+    console.log('%s App is running at http://localhost:%d in %s mode',
+      chalk.green('✓'),
+      app.get('port'),
+      app.get('env'));
+    console.log('  Press CTRL-C to stop\n');
+  });
+}());
 
 module.exports = app;
