@@ -1,7 +1,7 @@
 {
   "extends": [
     "airbnb-base",
-    // "plugin:vue/essential",
+    "plugin:vue/essential",
     // "eslint:recommended",
     "@vue/typescript/recommended"
     // "@vue/prettier",
@@ -44,7 +44,7 @@
       "typescript": {}
     }
   },
-  "ignorePatterns": ["node_modules", "assets", "static"],
+  // "ignorePatterns": ["node_modules", "assets", "static"],
   "overrides": [
     {
       "files": [

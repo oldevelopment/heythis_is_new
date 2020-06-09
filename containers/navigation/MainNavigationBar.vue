@@ -33,7 +33,7 @@
                 </v-avatar>
               </template>
               <v-list subheader>
-                <v-list-item>
+                <v-list-item link to="/account">
                   <v-list-item-icon>
                     <v-icon>mdi-account-circle</v-icon>
                   </v-list-item-icon>

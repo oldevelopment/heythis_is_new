@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <social-login class="mt-12" />
+    <social-login class="mt-12" :channels="['facebook', 'google']" />
   </v-container>
 </template>
 
@@ -24,5 +24,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style></style>

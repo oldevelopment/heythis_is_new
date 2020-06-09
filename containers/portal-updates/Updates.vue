@@ -13,7 +13,7 @@ import { EventItem } from '@/types';
 
 export default Vue.extend({
   components: {
-    UpdateCard,
+    UpdateCard
   },
 
   data() {
@@ -32,8 +32,8 @@ export default Vue.extend({
             date: '28-09-2019',
             day: 29,
             month: 'aug',
-            year: 19,
-          },
+            year: 19
+          }
         },
 
         {
@@ -49,8 +49,8 @@ export default Vue.extend({
             date: '16-10-2019',
             day: 29,
             month: 'aug',
-            year: 19,
-          },
+            year: 19
+          }
         },
 
         {
@@ -66,8 +66,8 @@ export default Vue.extend({
             date: '15-09-2019',
             day: 25,
             month: 'jun',
-            year: 19,
-          },
+            year: 19
+          }
         },
 
         {
@@ -83,12 +83,12 @@ export default Vue.extend({
             date: '06-10-2019',
             day: 24,
             month: 'oct',
-            year: 19,
-          },
-        },
-      ] as EventItem[],
+            year: 19
+          }
+        }
+      ] as EventItem[]
     };
-  },
+  }
 });
 </script>
 

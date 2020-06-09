@@ -136,10 +136,10 @@ app.use(session({
     autoReconnect: true
   })
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-// app.use((req, res, next) => {
 //   if (req.path === '/api/upload') {
 //     // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
 //     next();
@@ -172,35 +172,35 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use('/',
-  express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
-app.use('/js/lib',
-  express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
-    maxAge: 31557600000
-  }));
-app.use('/js/lib',
-  express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
-    maxAge: 31557600000
-  }));
-app.use('/js/lib',
-  express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
-    maxAge: 31557600000
-  }));
-app.use('/js/lib',
-  express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
-    maxAge: 31557600000
-  }));
-app.use('/webfonts',
-  express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
-    { maxAge: 31557600000 }));
+// app.use('/',
+//   express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+// app.use('/js/lib',
+//   express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
+//     maxAge: 31557600000
+//   }));
+// app.use('/js/lib',
+//   express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), {
+//     maxAge: 31557600000
+//   }));
+// app.use('/js/lib',
+//   express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
+//     maxAge: 31557600000
+//   }));
+// app.use('/js/lib',
+//   express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
+//     maxAge: 31557600000
+//   }));
+// app.use('/webfonts',
+//   express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
+//     { maxAge: 31557600000 }));
 
 /**
  * Primary app routes.
  */
 // app.get('/', homeController.index);
-app.get('/login', userController.getLogin);
-app.post('/login', userController.postLogin);
-app.get('/logout', userController.logout);
+// app.get('/login', userController.getLogin);
+// app.post('/login', userController.postLogin);
+app.get('/auth/logout', userController.logout);
 app.get('/forgot', userController.getForgot);
 app.post('/forgot', userController.postForgot);
 app.get('/reset/:token', userController.getReset);
@@ -215,7 +215,7 @@ app.get('/account/verify',
 app.get('/account/verify/:token',
   passportConfig.isAuthenticated,
   userController.getVerifyEmailToken);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
+// app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile',
   passportConfig.isAuthenticated,
   userController.postUpdateProfile);
@@ -279,7 +279,7 @@ app.get('/auth/instagram/callback', (req, res) => {
     client_id: clientId,
     client_secret: clientSecret,
     grant_type: 'authorization_code',
-    redirect_uri: redirectUri,
+    redirect_uri: `${process.env.BASE_URL}/auth/instagram/callback`,
     code
   };
 
@@ -361,7 +361,7 @@ app.get('/auth/facebook',
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect('/');
+    res.redirect('/account');
   });
 
 app.get('/auth/google',
@@ -378,7 +378,7 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect('/');
+    res.redirect('/account');
   });
 
 // ________________________________________graphql starts here_________________________________

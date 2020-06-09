@@ -1,11 +1,20 @@
 export type UserType = 'free' | 'premium';
 
+export type OAuthTokenKind = 'google' | 'instagram' | 'facebook' | 'twitter';
+
+export type OAuthToken = {
+  id: string;
+  kind: OAuthTokenKind;
+  accessTokenExpires: string;
+  refreshToken: string;
+}
+
 export type SocialUser = {
   profile: {
     name: string;
     picture: string;
   };
-  tokens: string[];
+  tokens: OAuthToken[];
   _id: string;
   email: string;
   google: string;
