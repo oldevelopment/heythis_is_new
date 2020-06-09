@@ -50,7 +50,7 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.config({ path: '.env.example' });
+dotenv.config({ path: '.env' });
 // load mongoose model
 // const Db = require('./models/User');
 const User = require('./models/User');
