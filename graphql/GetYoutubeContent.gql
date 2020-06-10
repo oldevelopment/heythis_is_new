@@ -1,0 +1,12 @@
+query youtubeContentAll($id: String!) {
+  getYoutubeContents(id: $id) {
+    kind
+    etag
+    object_id
+    contentDetails {
+      id
+      videoId
+      videoPublishedAt
+    }
+  }
+}

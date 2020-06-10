@@ -1,0 +1,5 @@
+query instagramContentAll($id: String!) {
+  getInstagramPageContent(id: $id) {
+    id
+  }
+}

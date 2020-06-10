@@ -20,6 +20,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.1",
     "@ladjs/bootstrap-social": "^7.0.2",
+    "@nuxtjs/apollo": "^4.0.1-rc.1",
     "@nuxtjs/axios": "^5.11.0",
     "@nuxtjs/dotenv": "^1.4.1",
     "@nuxtjs/pwa": "^3.0.0-beta.20",
@@ -29,6 +30,7 @@
     "@types/mongodb": "^3.5.20",
     "@types/mongoose": "^5.7.23",
     "@types/video.js": "^7.3.9",
+    "apollo-client": "^2.6.10",
     "axios": "^0.19.2",
     "bcrypt": "^4.0.1",
     "body-parser": "^1.19.0",
@@ -39,6 +41,7 @@
     "clockwork": "^0.1.4",
     "compression": "^1.7.4",
     "connect-mongo": "^3.2.0",
+    "core-js": "^3.6.5",
     "dotenv": "^8.2.0",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
@@ -52,6 +55,7 @@
     "graphiql": "^0.17.5",
     "graphql": "^14.6.0",
     "graphql-request": "^2.0.0",
+    "graphql-tag": "^2.10.3",
     "http": "^0.0.1-security",
     "https": "^1.0.0",
     "instagram-node": "^0.5.8",
@@ -101,6 +105,7 @@
     "validator": "^12.2.0",
     "video.js": "^7.8.2",
     "vue": "^2.6.11",
+    "vue-apollo": "^3.0.3",
     "vue-line-clamp": "^1.3.2",
     "vue-masonry-css": "^1.0.3",
     "vue-youtube-embed": "^2.2.2",
@@ -108,6 +113,7 @@
     "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
+    "@babel/runtime-corejs3": "^7.10.2",
     "@nuxt/typescript-build": "^0.5.8",
     "@nuxtjs/eslint-config": "^2.0.0",
     "@nuxtjs/eslint-config-typescript": "^1.0.2",

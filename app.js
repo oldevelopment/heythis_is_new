@@ -451,6 +451,105 @@ const RootQueryType = new GraphQLObjectType({
           // docs.forEach
           console.log(err, docs);
         })
+    },
+
+    getInstagramPageContent: {
+      type: new GraphQLList(InstagramType),
+      description:
+        'Gets all the content we want from Instagram once a user has granted permissions',
+      args: {
+        id: { type: GraphQLString },
+        accessToken: { type: GraphQLString },
+        fanCount: { type: GraphQLString },
+        pageName: { type: GraphQLString }
+      },
+      resolve: async (parent, args, request) => {
+        try {
+          const user = await User.findById(args.id);
+
+          const { accessToken } = user.tokens.find((item) => item.kind === 'instagram');
+          // console.log(accessToken);
+          const fieldsToGet = 'id,account_type,media_count,username,media';
+
+          const getAccountContents = `https://graph.instagram.com/me?fields=${fieldsToGet}&access_token=${accessToken}`;
+          //         `https://graph.instagram.com/{media-id}?fields=${fieldsToGet}&access_token=${access_token}`;
+          // `https://graph.instagram.com/me/media?fields=${fieldsToGet}&access_token=${access_token}`
+
+          const instaPageContent = await axios.get(getAccountContents);
+          return instaPageContent.data || user;
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    },
+
+    getYoutubeContents: {
+      type: new GraphQLList(youtubeVideo),
+      description: 'A gets youtube video contents of a user',
+      args: {
+        id: { type: GraphQLString },
+        channelID: { type: GraphQLString },
+        uploadID: { type: GraphQLString }
+      },
+      resolve: async (parent, args, request) => {
+        // AUTHENTICATION NOT REQUIRED FOR THESE ENDPOINTS
+
+        // const sessionId = request.session.passport.user;
+        // if (!sessionId) {
+        //   throw new Error('you are not logged in');
+        // }
+        // if (sessionId !== args.id && User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
+        try {
+          const user = await User.findById(args.id);
+          console.log('next step is getchannel');
+          const apiKey = process.env.GOOGLE_YOUTUBE_API_KEY;
+          const { accessToken } = user.tokens.find((item) => item.kind === 'google');
+
+          const getChannelID = `https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&key=${apiKey}`;
+          // console.log('ran getChannelID ');
+          let channelID = null;
+          await axios
+            .get(getChannelID, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
+            .then((response) => {
+              channelID = response.data.items[0].id;
+              console.log('channelID', response.data.items[0].id);
+            })
+            .catch((err) => console.log(err));
+
+          const getUploadID = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+          let uploadID = null;
+          await axios
+            .get(getUploadID, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
+            .then((response) => {
+              uploadID = response.data.items[0].contentDetails.relatedPlaylists.uploads;
+              console.log('getUploadID',
+                response.data.items[0].contentDetails.relatedPlaylists.uploads);
+            })
+            .catch((err) => console.log(err));
+          const videoPlaylistURL = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadID}&key=${process.env.GOOGLE_YOUTUBE_API_KEY}`;
+
+          let videos = [];
+          await axios
+            .get(videoPlaylistURL, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            })
+            .then((response) => {
+              console.log('videoPlaylistURL', response.data);
+              videos = response.data.items;
+            })
+            .catch((err) => console.log(err));
+
+          return videos;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     }
   })
 });
@@ -745,13 +844,15 @@ const RootMutationType = new GraphQLObjectType({
         facebook: { type: InputFacebookType }
       },
       resolve: async (parent, args, request) => {
-        const sessionId = request.session.passport.user;
-        if (!sessionId) {
-          throw new Error('you are not logged in');
-        }
-        if (sessionId !== args.id && User.admin === false) {
-          throw new Error('you are not authorised');
-        }
+        // AUTHENTICATION NOT REQUIRED FOR THESE ENDPOINTS
+
+        // const sessionId = request.session.passport.user;
+        // if (!sessionId) {
+        //   throw new Error('you are not logged in');
+        // }
+        // if (sessionId !== args.id && User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         try {
           // get user
           const user = await User.findById(args.id);
@@ -767,6 +868,7 @@ const RootMutationType = new GraphQLObjectType({
           // console.log('this is before save ', user.facebookpages);
           await user.save();
           // console.log('this is the saved content', user.facebookpages);
+          return fbResponse.data.data;
         } catch (e) {
           console.log(e);
         }
@@ -784,14 +886,16 @@ const RootMutationType = new GraphQLObjectType({
         pageName: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
-        const sessionId = request.session.passport.user;
-        console.log(sessionId);
-        if (!sessionId) {
-          throw new Error('you are not logged in');
-        }
-        if (sessionId !== args.id && User.admin === false) {
-          throw new Error('you are not authorised');
-        }
+        // AUTHENTICATION NOT REQUIRED FOR THESE ENDPOINTS
+
+        // const sessionId = request.session.passport.user;
+        // console.log(sessionId);
+        // if (!sessionId) {
+        //   throw new Error('you are not logged in');
+        // }
+        // if (sessionId !== args.id && User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         try {
           console.log('next step is getcontent');
           const user = await User.findById(args.id);
@@ -810,6 +914,8 @@ const RootMutationType = new GraphQLObjectType({
           user.facebookPageContents = fbpageContent.data;
 
           await user.save();
+
+          return fbpageContent.data;
         } catch (e) {
           console.log(e);
         }
@@ -826,13 +932,16 @@ const RootMutationType = new GraphQLObjectType({
         pageName: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
-        const sessionId = request.session.passport.user;
-        if (!sessionId) {
-          throw new Error('you are not logged in');
-        }
-        if (sessionId !== args.id && User.admin === false) {
-          throw new Error('you are not authorised');
-        }
+        console.log('getInstagramPageContent!!!', args);
+        // AUTHENTICATION NOT REQUIRED FOR THESE ENDPOINTS
+
+        // const sessionId = request.session.passport.user;
+        // if (!sessionId) {
+        //   throw new Error('you are not logged in');
+        // }
+        // if (sessionId !== args.id && User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         try {
           console.log('next step is getcontent');
           const user = await User.findById(args.id);
@@ -852,6 +961,8 @@ const RootMutationType = new GraphQLObjectType({
           // console.log('this is before save ', user.instagramContents);
           await user.save();
           // console.log('this is after save ', user.instagramContents);
+
+          return instaPageContent.data;
         } catch (e) {
           // console.log(e);
         }
@@ -866,13 +977,15 @@ const RootMutationType = new GraphQLObjectType({
         uploadID: { type: GraphQLString }
       },
       resolve: async (parent, args, request) => {
-        const sessionId = request.session.passport.user;
-        if (!sessionId) {
-          throw new Error('you are not logged in');
-        }
-        if (sessionId !== args.id && User.admin === false) {
-          throw new Error('you are not authorised');
-        }
+        // AUTHENTICATION NOT REQUIRED FOR THESE ENDPOINTS
+
+        // const sessionId = request.session.passport.user;
+        // if (!sessionId) {
+        //   throw new Error('you are not logged in');
+        // }
+        // if (sessionId !== args.id && User.admin === false) {
+        //   throw new Error('you are not authorised');
+        // }
         try {
           const user = await User.findById(args.id);
           console.log('next step is getchannel');
@@ -922,6 +1035,8 @@ const RootMutationType = new GraphQLObjectType({
           // console.log('this is before save ', user.instagramContents);
           await user.save();
           // console.log('this is after save ', user.instagramContents);
+
+          return user.videos;
         } catch (e) {
           console.log(e);
         }

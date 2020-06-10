@@ -54,7 +54,8 @@ export default {
     '@nuxtjs/pwa',
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv',
-    'nuxt-vuex-router-sync'
+    'nuxt-vuex-router-sync',
+    '@nuxtjs/apollo',
   ],
   /*
    ** Axios module configuration
@@ -88,20 +89,28 @@ export default {
     /*
      ** You can extend webpack config here
      */
-    extend(config, ctx) {}
+    extend(config, ctx) {},
+    babel: {
+      // envName: server, client, modern
+      presets({ envName }) {
+        return [
+          [
+            '@nuxt/babel-preset-app',
+            {
+              corejs: { version: 3 }
+            }
+          ]
+        ];
+      }
+    }
   },
 
-  router: {
-    extendRoutes(routes, resolve) {
-      routes.push({
-        name: 'auth/google',
-        path: '/auth/google'
-      });
-
-      routes.push({
-        name: 'logout',
-        path: '/auth/logout'
-      });
+  apollo: {
+    clientConfigs: {
+      default: {
+        httpEndpoint: 'http://localhost:8080/graphql',
+        browserHttpEndpoint: '/graphql',
+      }
     }
   }
 };
