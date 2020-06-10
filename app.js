@@ -199,7 +199,7 @@ app.use((req, res, next) => {
  */
 // app.get('/', homeController.index);
 // app.get('/login', userController.getLogin);
-// app.post('/login', userController.postLogin);
+app.post('/login', userController.postLogin);
 app.get('/auth/logout', userController.logout);
 app.get('/forgot', userController.getForgot);
 app.post('/forgot', userController.postForgot);

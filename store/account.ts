@@ -1,5 +1,7 @@
 import { AsyncModule } from 'vuex-async-mutations';
-import { Nullable, SocialUser, CreateUser } from '@/types';
+import {
+  Nullable, SocialUser, CreateUser, SignInUser
+} from '@/types';
 
 type AccountState = {
   user: Nullable<SocialUser>;
@@ -32,7 +34,13 @@ const mod: AsyncModule<AccountState, any> = {
 
   actions: {
     async ['signUp']({ commit }, profile: CreateUser) {
-      const user = await this.$axios.post<SocialUser>('/signup', profile);
+      const user = await this.$axios.$post<SocialUser>('/signup', profile);
+
+      commit('set:user', user);
+    },
+
+    async ['signIn']({ commit }, profile: SignInUser) {
+      const user = await this.$axios.$post<SocialUser>('/login', profile);
 
       commit('set:user', user);
     },

@@ -9,6 +9,11 @@ export type CreateUser = {
   confirmPassword: string;
 }
 
+export type SignInUser = {
+  email: string;
+  password: string;
+}
+
 export type OAuthToken = {
   id: string;
   kind: OAuthTokenKind;
