@@ -2,8 +2,9 @@
   <v-form>
     <v-row>
       <v-col cols="12" class="d-flex justify-center">
-        <v-avatar size="64">
-          <v-img :src="profile.profile.picture" />
+        <v-avatar size="128" class="mb-8">
+          <v-img v-if="profile.picture" :src="profile.picture" />
+          <v-icon v-else size="128">mdi-face-profile</v-icon>
         </v-avatar>
       </v-col>
     </v-row>
@@ -12,7 +13,7 @@
       <v-col cols="12">
 
         <v-text-field
-          :value="profile.profile.name"
+          :value="profile.name"
           label="Naam"
           outlined
           readonly

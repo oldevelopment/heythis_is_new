@@ -2,6 +2,13 @@ export type UserType = 'free' | 'premium';
 
 export type OAuthTokenKind = 'google' | 'instagram' | 'facebook' | 'twitter';
 
+export type CreateUser = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export type OAuthToken = {
   id: string;
   kind: OAuthTokenKind;

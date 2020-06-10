@@ -1,34 +1,34 @@
 <template>
   <v-container>
     <div class="pt-12 display-2 font-weight-bold text-center">
-      Account
+      Register
     </div>
 
     <v-row class="justify-center">
       <v-col cols="4">
-        <profile class="mt-8" />
+        <signup class="mt-8" />
       </v-col>
     </v-row>
 
     <div class="headline font-weight-normal mt-3 text-center">
-        Use your social network to connect to your heythis.is page.
+        Or use your social network to register with heythis.is.
       </div>
-    <social-login class="mt-12 justify-center" />
+    <social-login class="mt-12 justify-center" :channels="['facebook', 'google']" />
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-import SocialLogin from '@/containers/social-login';
-import Profile from '@/containers/profile';
+import SocialLogin from '@/components/social-login';
+import Signup from '@/containers/signup';
 
 export default Vue.extend({
   layout: 'default',
 
   components: {
     SocialLogin,
-    Profile,
+    Signup,
   },
 });
 </script>

@@ -20,16 +20,17 @@
           <v-spacer></v-spacer>
 
           <template v-if="!signedIn">
-            <v-btn to="/register" class="text-capitalize" text>Register</v-btn>
+            <v-btn to="/signup" class="text-capitalize" text>Register</v-btn>
             <v-btn to="/login" class="text-capitalize" text>Login</v-btn>
           </template>
 
           <template v-else>
-            <span v-text="user.profile.name" class="mr-3 title" />
+            <span v-text="user.name || user.email" class="mr-3 title" />
             <v-menu min-width="200">
               <template v-slot:activator="{ on }">
                 <v-avatar size="36" v-on="on" @click.stop="">
-                  <v-img :src="user.profile.picture" />
+                  <v-img v-if="user.picture" :src="user.picture" />
+                  <v-icon v-else size="36">mdi-face-profile</v-icon>
                 </v-avatar>
               </template>
               <v-list subheader>
@@ -40,14 +41,16 @@
                   <v-list-item-title>Mijn profiel</v-list-item-title>
                 </v-list-item>
                 <v-divider />
-                <v-list-item link>
-                  <v-list-item-icon>
-                    <v-icon>mdi-logout-variant</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>
-                    <a href="/auth/logout" style="text-decoration: none">Uitloggen</a>
-                  </v-list-item-title>
-                </v-list-item>
+                <a href="/auth/logout" style="text-decoration: none">
+                  <v-list-item link>
+                    <v-list-item-icon>
+                      <v-icon>mdi-logout-variant</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>
+                      Uitloggen
+                    </v-list-item-title>
+                  </v-list-item>
+                </a>
               </v-list>
             </v-menu>
           </template>
