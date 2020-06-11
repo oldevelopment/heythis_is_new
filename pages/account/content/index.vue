@@ -9,7 +9,7 @@
 <script lang="ts">
 import Vue from 'vue';
 
-import GET_YOUTUBE_CONTENT from '@/graphql/GetYoutubeContent.gql';
+const GET_YOUTUBE_CONTENT = require('@/graphql/GetYoutubeContent.gql');
 
 export default Vue.extend({
   data() {
